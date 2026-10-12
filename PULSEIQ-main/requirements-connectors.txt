@@ -1,0 +1,6 @@
+-r requirements.txt
+# Optional: install when your college connects these source systems.
+oracledb==3.1.1
+pymssql==2.3.4
+# ODBC alternative for SQL Server (requires Microsoft/UnixODBC drivers on host):
+# pyodbc==5.2.0

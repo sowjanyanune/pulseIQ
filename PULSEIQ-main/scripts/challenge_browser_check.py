@@ -1,0 +1,41 @@
+from playwright.sync_api import sync_playwright
+import json, subprocess, time, urllib.request
+server=subprocess.Popen(["python","run_demo.py"],stdout=open("browser-server.log","w"),stderr=subprocess.STDOUT)
+for _ in range(40):
+    try:
+        urllib.request.urlopen("http://127.0.0.1:8000/health");break
+    except Exception:time.sleep(.25)
+with sync_playwright() as p:
+    browser=p.chromium.launch(headless=True,args=['--no-sandbox'])
+    page=browser.new_page(viewport={'width':1440,'height':1000})
+    errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    page.goto('http://127.0.0.1:8000')
+    page.get_by_label('College email',exact=True).fill('admin@demo.edu.in')
+    page.get_by_label('Password',exact=True).fill('DemoCampus2026!')
+    page.get_by_role('button',name='Sign in',exact=True).click()
+    page.get_by_role('button',name='Success Intelligence',exact=True).click()
+    page.get_by_role('heading',name='Unified student view').wait_for()
+    page.get_by_label('Search students',exact=True).fill('DEMO0001')
+    page.get_by_role('button',name='Demo Student 0001 · DEMO0001').click()
+    page.get_by_role('heading',name='Risk evidence and recommendations').wait_for()
+    page.get_by_label('Action owner').fill('Faculty mentor')
+    page.get_by_label('Support action').fill('Weekly coding practice')
+    page.get_by_label('Due date').fill('2026-11-01')
+    page.get_by_role('button',name='Save support action').click()
+    page.get_by_role('button',name='Mark reviewed').last.wait_for()
+    page.get_by_role('button',name='Mark reviewed').last.click()
+    page.get_by_text('Reviewed',exact=False).last.wait_for()
+    page.get_by_role('button',name='What if marks improve by 10 points?').click()
+    page.get_by_text('Scenario score:',exact=False).wait_for()
+    page.get_by_role('button',name='Train synthetic demonstration model').click()
+    page.get_by_role('button',name='Show model predictions').wait_for(timeout=30000)
+    page.get_by_role('button',name='Show model predictions').click()
+    page.wait_for_timeout(1200)
+    assert 'model support probability' in page.locator('body').inner_text().lower()
+    print('workflow complete',flush=True)
+    page.screenshot(path='browser-check.png',full_page=False,animations='disabled',timeout=10000)
+    page.set_viewport_size({'width':390,'height':844})
+    print(json.dumps({'page_errors':errors,'horizontal_overflow':page.evaluate('document.documentElement.scrollWidth > innerWidth'),'actions':'login,filter,explain,action create/review,scenario,ML train/predict passed'}))
+    browser.close()
+
+server.terminate()

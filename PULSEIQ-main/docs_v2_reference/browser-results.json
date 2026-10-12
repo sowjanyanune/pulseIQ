@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Login, 1000-student overview and charts",
+    "Student profile, reference score and provenance",
+    "Create and review a saved Action Board item",
+    "Reopen, three revisions and persistence across backend restart",
+    "What-if result stays visible and baseline stays unchanged",
+    "Create faculty user, scope to 250 authorized students and actions",
+    "Mobile Action Board without horizontal page overflow"
+  ],
+  "page_errors": [],
+  "status": "passed"
+}

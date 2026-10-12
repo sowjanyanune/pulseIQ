@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: pulseiq
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ENVIRONMENT
+        value: production
+      - key: SEED_DEMO
+        value: "false"
+      - key: IMPORT_LEGACY_V2
+        value: "false"

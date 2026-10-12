@@ -1,0 +1,1316 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>PulseIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: dark ink sidebar + pale workspace; a heartbeat line is the brand motif; red/amber/green are reserved for risk and status only. */
+:root{
+  --bg:#F1F4F3; --surface:#FFFFFF; --surface2:#E8EEEC; --ink:#0E1D22; --muted:#56696E; --line:#D5DEDC;
+  --accent:#0A7D77; --accent-ink:#FFFFFF; --accent-soft:#D6EFEB;
+  --good:#17804A; --good-soft:#DAF1E3; --warn:#9A6205; --warn-soft:#FAEBC8; --bad:#BE3A3A; --bad-soft:#F8DADA;
+  --side:#0C1A1F; --side-ink:#C8D6D8; --side-mut:#6F878B; --side-act:#17302F; --side-line:#1C2F34;
+  --c1:#0A7D77; --c2:#4254C5; --c3:#C27A0E; --c4:#C2477A; --c5:#5F7378; --c6:#7A4FBF;
+  --shadow:0 1px 2px rgba(14,29,34,.06),0 10px 28px rgba(14,29,34,.07);
+  --f-d:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-b:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --f-m:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1215; --surface:#101C20; --surface2:#172A2F; --ink:#E5EEED; --muted:#8CA1A4; --line:#24373C;
+  --accent:#3CC4B8; --accent-ink:#06201E; --accent-soft:#12383A;
+  --good:#4FCB86; --good-soft:#12301F; --warn:#E6A93E; --warn-soft:#3A2B0C; --bad:#F07878; --bad-soft:#3C1A1A;
+  --side:#070F12; --side-act:#13292A; --side-line:#14262A;
+  --c1:#3CC4B8; --c2:#8C9BFF; --c3:#E6A93E; --c4:#F08AB4; --c5:#8CA1A4; --c6:#B48CF0;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1215; --surface:#101C20; --surface2:#172A2F; --ink:#E5EEED; --muted:#8CA1A4; --line:#24373C;
+  --accent:#3CC4B8; --accent-ink:#06201E; --accent-soft:#12383A;
+  --good:#4FCB86; --good-soft:#12301F; --warn:#E6A93E; --warn-soft:#3A2B0C; --bad:#F07878; --bad-soft:#3C1A1A;
+  --side:#070F12; --side-act:#13292A; --side-line:#14262A;
+  --c1:#3CC4B8; --c2:#8C9BFF; --c3:#E6A93E; --c4:#F08AB4; --c5:#8CA1A4; --c6:#B48CF0;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-b);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--f-d);font-weight:700;margin:0;line-height:1.15;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--f-m);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ic{flex:none;vertical-align:middle}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;line-height:1.2;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--accent-ink)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:7px}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.iconbtn{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;position:relative}
+.iconbtn:hover{border-color:var(--accent);color:var(--accent)}
+.badge-dot{position:absolute;top:-4px;right:-4px;background:var(--bad);color:#fff;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px;font-weight:600}
+/* form */
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld label,.lbl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.inp,.sel,.txt{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:0}
+.inp:focus,.sel:focus,.txt:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
+.txt{min-height:84px;resize:vertical}
+.err{color:var(--bad);font-size:12.5px}
+.hint{color:var(--muted);font-size:12.5px}
+input[type=range]{accent-color:var(--accent);width:100%}
+.chk{display:inline-flex;gap:8px;align-items:center;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+/* pills */
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--surface2);color:var(--muted)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.high,.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.med,.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.low,.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.acc{background:var(--accent-soft);color:var(--accent)}
+.pill.plain::before{display:none}
+.tag{display:inline-block;font-family:var(--f-m);font-size:11px;letter-spacing:.04em;padding:2px 7px;border:1px solid var(--line);border-radius:5px;color:var(--muted);background:var(--surface)}
+/* cards & grids */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.card.flat{box-shadow:none}
+.card h3{font-size:16px}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.card-h p{color:var(--muted);font-size:13px;margin-top:2px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.g-main{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:14px}
+.kpi{display:flex;flex-direction:column;gap:4px;padding:14px 16px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-family:var(--f-d);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .s{font-size:12.5px;color:var(--muted)}
+.up{color:var(--good)}.dn{color:var(--bad)}
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface2);white-space:nowrap;font-weight:600;position:sticky;top:0}
+th.srt{cursor:pointer;user-select:none}
+th.srt:hover{color:var(--accent)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr.clk{cursor:pointer}
+tbody tr.clk:hover td{background:var(--accent-soft)}
+td .sub{color:var(--muted);font-size:12px}
+.pager{display:flex;gap:8px;align-items:center;justify-content:space-between;padding-top:12px;flex-wrap:wrap}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+/* bars */
+.hb{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px;padding:5px 0}
+.hb .tr{height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;display:flex}
+.hb .fl{height:100%;border-radius:5px}
+.hb.clk{cursor:pointer;border-radius:6px}
+.hb.clk:hover{background:var(--accent-soft)}
+.stk span{height:100%;display:block}
+.div-row{display:grid;grid-template-columns:minmax(96px,140px) minmax(0,1fr) 56px;gap:10px;align-items:center;font-size:13px;padding:5px 0}
+.div-row .tr{position:relative;height:16px}
+.div-row .tr::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted);opacity:.5}
+.div-row .b{position:absolute;top:2px;height:12px;border-radius:3px}
+.svgc{width:100%;height:auto;display:block}
+.svgc text{font-family:var(--f-m);font-size:10.5px;fill:var(--muted)}
+.svgc .gl{stroke:var(--line);stroke-width:1}
+.svgc .pt{cursor:pointer}
+.svgc .pt:hover{stroke:var(--ink);stroke-width:2}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.heat td{text-align:center;font-family:var(--f-m);font-size:13px}
+.heat td:first-child{text-align:left;font-family:var(--f-b)}
+/* shell */
+.app{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:100vh}
+.side{background:var(--side);color:var(--side-ink);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;padding:16px 12px;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 14px;font-family:var(--f-d);font-weight:700;font-size:20px;color:#fff;letter-spacing:-.01em}
+.brand svg{flex:none}
+.rolechip{margin:0 8px 8px;padding:8px 10px;border:1px solid var(--side-line);border-radius:8px;font-size:12px;color:var(--side-mut)}
+.rolechip b{display:block;color:#fff;font-size:13px;font-weight:600}
+.ng{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--side-mut);padding:12px 10px 4px;font-weight:600}
+.nl{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--side-ink);cursor:pointer;border:0;background:none;width:100%;text-align:left;font-size:13.5px}
+.nl:hover{background:var(--side-act);color:#fff}
+.nl.on{background:var(--side-act);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.nl .cd{margin-left:auto;font-family:var(--f-m);font-size:10px;color:var(--side-mut)}
+.side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--side-line)}
+.main{min-width:0;display:flex;flex-direction:column}
+.navscrim{display:none}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 24px}
+.top .ttl{font-family:var(--f-d);font-weight:700;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gsw{position:relative;flex:1;max-width:380px;margin-left:auto}
+.gsw .inp{padding-left:34px}
+.gsw .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.gsr{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);z-index:30;overflow:hidden}
+.gsr button{display:flex;width:100%;justify-content:space-between;gap:8px;padding:9px 12px;border:0;background:none;cursor:pointer;text-align:left}
+.gsr button:hover{background:var(--accent-soft)}
+.av{width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;font-family:var(--f-d);flex:none}
+.page{padding:24px;display:flex;flex-direction:column;gap:18px;max-width:1440px;width:100%}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ph h1{font-size:26px}
+.ph p{color:var(--muted);margin-top:4px;max-width:70ch}
+.ph .tag{margin-bottom:8px}
+.menubtn{display:none}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:var(--accent);border-color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:13px}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.toolbar .fld{min-width:140px}
+.toolbar .grow{flex:1;min-width:200px}
+/* overlays */
+.scrim{position:fixed;inset:0;background:rgba(6,14,17,.55);z-index:60;display:flex;justify-content:flex-end}
+.scrim.mid{justify-content:center;align-items:center;padding:16px}
+.drawer{background:var(--bg);width:min(580px,100%);height:100%;overflow-y:auto;border-left:1px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:16px}
+.modal{background:var(--surface);border-radius:14px;width:min(560px,100%);max-height:92vh;overflow-y:auto;padding:22px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.modal.wide{width:min(760px,100%)}
+#toasts{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:90;width:min(420px,calc(100% - 32px))}
+.toast{background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:9px;font-size:13.5px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
+.toast.bad{background:var(--bad);color:#fff}
+.gauge{position:relative;display:grid;place-items:center}
+.gauge .gv{position:absolute;text-align:center}
+.gauge .gv b{font-family:var(--f-d);font-size:30px;display:block;line-height:1}
+.gauge .gv span{font-size:11px;color:var(--muted)}
+.callout{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px}
+.callout.bad{border-left-color:var(--bad)} .callout.warn{border-left-color:var(--warn)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.li .grow{flex:1;min-width:0}
+.seg{display:flex;gap:10px;align-items:flex-start}
+.seg i{width:10px;height:10px;border-radius:3px;margin-top:5px;flex:none}
+.sbar{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;min-width:60px}
+.sbar b{display:block;height:100%;border-radius:3px}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.prog{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.prog b{display:block;height:100%;background:var(--accent);transition:width .3s}
+.tt{display:grid;grid-template-columns:70px repeat(5,minmax(0,1fr));gap:6px;font-size:12.5px}
+.tt>div{padding:8px;border-radius:7px;background:var(--surface2);min-height:44px}
+.tt .hd{background:none;font-weight:600;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.06em;min-height:0}
+.tt .cl{background:var(--accent-soft);color:var(--ink)}
+.tt .cl small{display:block;color:var(--muted)}
+.tt .ex{background:var(--warn-soft)}
+/* landing + auth */
+.land{min-height:100vh;display:flex;flex-direction:column}
+.l-nav{display:flex;align-items:center;justify-content:space-between;padding:18px max(16px,5vw)}
+.l-nav .brand{color:var(--ink);padding:0}
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:48px;padding:40px max(16px,5vw) 56px;align-items:center}
+.hero h1{font-size:clamp(34px,4.6vw,56px);letter-spacing:-.025em}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lead{font-size:17px;color:var(--muted);margin:18px 0 26px;max-width:54ch}
+.ecg{width:100%;height:56px;margin-top:30px}
+.ecg path{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:dr 2.6s ease-out forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+.band{padding:44px max(16px,5vw);border-top:1px solid var(--line);background:var(--surface)}
+.band h2{font-size:26px;margin-bottom:22px}
+.src{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.auth{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);min-height:100vh}
+.auth-l{background:var(--side);color:var(--side-ink);padding:40px max(16px,4vw);display:flex;flex-direction:column;gap:20px;justify-content:space-between}
+.auth-l h2{color:#fff;font-size:30px;max-width:16ch}
+.auth-r{display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.auth-card{width:min(440px,100%);display:flex;flex-direction:column;gap:16px}
+.det{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:500}
+.det.no{background:var(--surface2);color:var(--muted)}
+.demo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.demo button{border:1px dashed var(--line);background:none;border-radius:8px;padding:8px;cursor:pointer;text-align:left;font-size:12.5px;color:var(--muted)}
+.demo button b{display:block;color:var(--ink);font-size:13px}
+.demo button:hover{border-color:var(--accent)}
+.pv{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px}
+.welc{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.logo{width:64px;height:64px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-d);font-weight:700;font-size:22px;letter-spacing:-.02em}
+@media (max-width:1100px){.g4,.g6{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.g-main{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;left:0;top:0;bottom:0;width:272px;z-index:70;transform:translateX(-100%);transition:transform .2s}
+  .app.nav-open .side{transform:none}
+  .navscrim{display:none}
+  .app.nav-open .navscrim{display:block;position:fixed;inset:0;background:rgba(6,14,17,.5);z-index:65}
+  .menubtn{display:inline-grid}
+  .top{padding:10px 16px}.page{padding:16px}
+  .hero,.auth{grid-template-columns:minmax(0,1fr)}
+  .auth-l{display:none}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){.g4,.g6{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.demo{grid-template-columns:minmax(0,1fr)}.hb{grid-template-columns:90px minmax(0,1fr) auto}.tt{grid-template-columns:48px repeat(5,minmax(0,1fr));font-size:11px}.tt>div{padding:5px}.gsw{display:none}.kpi .v{font-size:23px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.ecg path{stroke-dashoffset:0}}
+</style>
+<div id="root"></div><div id="drawer"></div><div id="modal"></div><div id="toasts" aria-live="polite"></div>
+<script>
+/* ===== PulseIQ data layer: sample data stands in for the unified student view the database will supply ===== */
+const COLLEGE={name:'Meridian Institute of Technology',domain:'meridian.edu.in',mark:'MIT',affil:'Autonomous · NAAC A · Est. 1998'};
+const TERM='Odd Semester 2026–27';
+const DEPTS=[
+ {code:'CSE',name:'Computer Science & Engineering',hod:'Dr. S. Venkat Rao'},
+ {code:'IT',name:'Information Technology',hod:'Dr. P. Lakshmi'},
+ {code:'ECE',name:'Electronics & Communication',hod:'Dr. K. Murali Krishna'},
+ {code:'EEE',name:'Electrical & Electronics',hod:'Dr. R. Sunitha'},
+ {code:'MECH',name:'Mechanical Engineering',hod:'Dr. B. Srinivas'}];
+const POOL={
+ CSE:{3:'Data Structures, Discrete Mathematics, Digital Logic Design, Object Oriented Programming, Computer Organization, Probability & Statistics',5:'Operating Systems, Database Management Systems, Computer Networks, Design & Analysis of Algorithms, Theory of Computation, Machine Learning',7:'Cloud Computing, Deep Learning, Information Security, Big Data Analytics, Software Project Management, Professional Elective'},
+ IT:{3:'Data Structures, Discrete Mathematics, Digital Electronics, Java Programming, Computer Architecture, Statistics for IT',5:'Operating Systems, Database Systems, Computer Networks, Web Technologies, Algorithms, Software Engineering',7:'Cloud Computing, Data Mining, Cyber Security, Mobile App Development, IoT Systems, Open Elective'},
+ ECE:{3:'Network Theory, Analog Circuits, Signals & Systems, Digital Logic, EM Waves, Engineering Maths III',5:'Digital Communication, Microprocessors, Control Systems, VLSI Design, Antenna Theory, Digital Signal Processing',7:'Wireless Communication, Embedded Systems, Optical Networks, RF Design, Satellite Communication, Open Elective'},
+ EEE:{3:'Circuit Analysis, Electrical Machines I, Analog Electronics, Field Theory, Digital Systems, Engineering Maths III',5:'Power Systems I, Electrical Machines II, Control Systems, Power Electronics, Microcontrollers, Measurements',7:'Power System Protection, HVDC Systems, Renewable Energy, Smart Grids, Electric Drives, Open Elective'},
+ MECH:{3:'Thermodynamics, Fluid Mechanics, Strength of Materials, Manufacturing Processes, Kinematics of Machinery, Engineering Maths III',5:'Heat Transfer, Dynamics of Machinery, Machine Design, Metrology, IC Engines, Operations Research',7:'CAD/CAM, Automation, Refrigeration & AC, Finite Element Analysis, Industrial Engineering, Open Elective'}};
+const FN='Aarav,Vivaan,Aditya,Arjun,Sai,Rohan,Karthik,Harsha,Pranav,Nikhil,Rahul,Varun,Manoj,Tejas,Charan,Ananya,Diya,Sneha,Priya,Kavya,Meghana,Sravani,Lakshmi,Pooja,Nandini,Divya,Harini,Ishita,Bhavana,Keerthi,Mounika,Teja,Vamsi,Uday,Yash'.split(',');
+const LN='Reddy,Sharma,Naidu,Rao,Patel,Kumar,Varma,Chowdary,Iyer,Nair,Gupta,Singh,Menon,Das,Babu,Prasad,Raju,Murthy,Pillai,Joshi,Verma,Mehta,Kulkarni,Shetty,Bhat'.split(',');
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mulberry32(20261010);
+const nrm=(m,s)=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x));
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const r0=x=>Math.round(x);
+const r1=x=>Math.round(x*10)/10;
+const r2=x=>Math.round(x*100)/100;
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+
+/* Faculty */
+const FAC_NAMES={CSE:['Dr. Ananya Rao','Prof. Suresh Babu','Dr. Meera Nair','Prof. Imran Shaikh'],IT:['Dr. Lakshmi Prasad','Prof. Arvind Menon','Dr. Rekha Varma','Prof. Joseph Mathew'],ECE:['Dr. Murali Krishna','Prof. Deepa Iyer','Dr. Harish Gupta','Prof. Sandhya Rani'],EEE:['Dr. Sunitha Reddy','Prof. Ramesh Chowdary','Dr. Vikram Singh','Prof. Padma Kumari'],MECH:['Dr. Srinivas Babu','Prof. Anil Kulkarni','Dr. Farhan Ali','Prof. Geeta Pillai']};
+const DESIG=['Professor','Associate Professor','Assistant Professor','Assistant Professor'];
+const FACULTY=[];
+DEPTS.forEach(d=>FAC_NAMES[d.code].forEach((n,i)=>FACULTY.push({id:`FAC-${d.code}-0${i+1}`,name:n,dept:d.code,desig:DESIG[i],email:n.replace(/^(Dr\.|Prof\.) /,'').toLowerCase().replace(/ /g,'.')+'@'+COLLEGE.domain,exp:r0(6+rnd()*18),status:'Active'})));
+
+/* Students */
+const STUDENTS=[];
+const BATCHES=[[2023,7],[2024,5],[2025,3]];
+DEPTS.forEach(d=>BATCHES.forEach(([b,sem])=>{
+  let n=0;
+  ['A','B'].forEach(sec=>{
+    const subs=POOL[d.code][sem].split(', ');
+    const fac=FACULTY.filter(f=>f.dept===d.code);
+    for(let i=0;i<12;i++){
+      n++;
+      const a=cl(nrm(.62,.17),.1,.98);
+      const e=cl(nrm(.55,.2)+(a-.6)*.25,.05,.98);
+      const prep=cl(nrm(.48,.2)+(a-.6)*.2+(sem-3)*.03,.05,.98);
+      const cgpa=r2(cl(4.6+5*a+nrm(0,.35),4.1,9.8));
+      const backlogs=cgpa<6?r0(1+rnd()*3):cgpa<7?(rnd()<.35?r0(1+rnd()):0):(rnd()<.04?1:0);
+      const subj=subs.map((nm,j)=>{
+        const q=cl(a+nrm(0,.1),.05,1);
+        return{name:nm,code:`${d.code}${sem}0${j+1}`,fac:fac[(j+sec.charCodeAt(0))%4].name,
+          att:r0(cl(100*(.5+.4*e+.1*a)+nrm(0,6),35,99)),
+          mid1:r0(cl(30*(.3+.68*q+nrm(0,.06)),4,30)),mid2:r0(cl(30*(.3+.68*q+nrm(0,.06)),4,30)),
+          asg:r0(cl(10*(.4+.55*e+nrm(0,.1)),2,10))}});
+      const att=r0(mean(subj.map(x=>x.att)));
+      const internal=r0(mean(subj.map(x=>(x.mid1+x.mid2+x.asg)/70*100)));
+      const roll=`${String(b).slice(2)}${d.code}${String((sec==='A'?0:12)+i+1).padStart(3,'0')}`;
+      const nm=`${pick(FN)} ${pick(LN)}`;
+      const hist=[];for(let k=1;k<sem;k++)hist.push(r2(cl(cgpa+nrm(0,.4)+(k-(sem-1)/2)*.06,4,10)));
+      STUDENTS.push({id:roll,name:nm,dept:d.code,batch:b,sem,sec,cls:`${d.code}-Y${(sem+1)/2}-${sec}`,email:roll.toLowerCase()+'@'+COLLEGE.domain,
+        phone:'9'+String(r0(100000000+rnd()*899999999)),active:rnd()>.02,cgpa,backlogs,internal,att,subj,hist,
+        lms:{logins:r0(cl(nrm(4+14*e,2.5),0,25)),assign:r0(cl(100*(.35+.6*e+.1*a+nrm(0,.08)),5,100))},
+        eng:{events:r0(cl(nrm(7*e,1.8),0,12)),clubs:r0(cl(nrm(2.2*e,.7),0,4)),hack:r0(cl(nrm(4*e*prep,.8),0,5)),certs:r0(cl(nrm(7.5*prep*e,1.2),0,8))},
+        plc:{apt:r0(cl(100*(.25+.55*prep+.15*a+nrm(0,.08)),12,98)),code:r0(cl(100*(.15+.65*prep+.1*a+nrm(0,.1)),5,98)),mock:r0(cl(100*(.2+.6*prep+.1*e+nrm(0,.1)),10,98))},
+        skills:{tech:r0(cl(100*(.25+.45*prep+.25*a+nrm(0,.07)),12,98)),soft:r0(cl(100*(.3+.45*e+.15*prep+nrm(0,.08)),15,98))},
+        fb:{sat:r1(cl(2.2+2.5*e+nrm(0,.4),1.2,5)),fac:r1(cl(2.4+2.2*e+.4*a+nrm(0,.35),1.2,5))},
+        delta:r1(nrm((a-.55)*4,2.8)),mentor:fac[(i+n)%4].name});
+    }
+  });
+}));
+
+/* ===== Success Score model ===== */
+const PILLARS=[
+ {k:'academic',label:'Academics',short:'Acad',w:.30,desc:'CGPA, internal marks and backlogs',src:'Academic'},
+ {k:'attendance',label:'Attendance',short:'Attend',w:.15,desc:'Overall attendance across subjects',src:'Attendance'},
+ {k:'lms',label:'LMS activity',short:'LMS',w:.10,desc:'Weekly logins and assignment completion',src:'LMS'},
+ {k:'engagement',label:'Engagement',short:'Engage',w:.10,desc:'Events, clubs, hackathons, certifications',src:'Engagement'},
+ {k:'placement',label:'Placement readiness',short:'Place',w:.20,desc:'Aptitude, coding and mock interview scores',src:'Placement'},
+ {k:'skills',label:'Skills',short:'Skills',w:.10,desc:'Technical and soft-skill assessments',src:'Skills'},
+ {k:'feedback',label:'Feedback',short:'Feedback',w:.05,desc:'Student satisfaction and faculty feedback',src:'Feedback'}];
+const SEGS=[
+ {k:'critical',label:'Critical support',color:'--bad',desc:'High academic risk with weak attendance or multiple backlogs. Needs a mentor this week.',action:'Assign a mentor, parent meeting, attendance and remedial plan.'},
+ {k:'gap',label:'Academic strong, placement gap',color:'--c3',desc:'Good grades but low aptitude, coding or interview readiness.',action:'Aptitude and coding prep track, mock interviews, certification push.'},
+ {k:'slip',label:'Placement-ready, academics slipping',color:'--c2',desc:'Strong placement indicators but weak academic standing.',action:'Backlog clearing plan and subject tutoring before placement season.'},
+ {k:'disengaged',label:'Disengaged',color:'--c4',desc:'Low LMS activity and little participation outside class.',action:'Mentor check-in, club or event nomination, LMS nudges.'},
+ {k:'star',label:'Star performers',color:'--c1',desc:'High success score with no risk flags.',action:'Peer-mentor role, research or hackathon opportunities.'},
+ {k:'steady',label:'Steady core',color:'--c5',desc:'Mid-range on most indicators. Monitor, no action needed yet.',action:'Routine monitoring.'}];
+const SEGMAP=Object.fromEntries(SEGS.map(s=>[s.k,s]));
+
+function pillars(s){
+  const cg=cl((s.cgpa-4)/6*100,0,100);
+  const p={};
+  p.academic=.55*cg+.25*s.internal+.20*(100-Math.min(s.backlogs,4)*25);
+  p.attendance=cl((s.att-50)/45*100,0,100);
+  p.lms=.5*Math.min(s.lms.logins/15,1)*100+.5*s.lms.assign;
+  p.engagement=Math.min(100,s.eng.events*6+s.eng.clubs*10+s.eng.hack*10+s.eng.certs*8);
+  p.placement=.35*s.plc.apt+.40*s.plc.code+.25*s.plc.mock;
+  p.skills=.6*s.skills.tech+.4*s.skills.soft;
+  p.feedback=(s.fb.sat+s.fb.fac)/10*100;
+  Object.keys(p).forEach(k=>p[k]=r1(p[k]));
+  return p;
+}
+STUDENTS.forEach(s=>s.p=pillars(s));
+
+const S0={W:Object.fromEntries(PILLARS.map(p=>[p.k,p.w])),R:{att:75,acHi:50,acMed:38,plHi:54,plMed:44}};
+let MEAN={};
+const acadRisk=s=>cl(100-(.45*s.p.academic+.30*s.p.attendance+.15*s.p.lms+.10*s.p.feedback)+Math.min(s.backlogs,3)*4,0,100);
+const plcRisk=s=>cl(100-(.65*s.p.placement+.25*s.p.skills+.10*s.p.engagement),0,100);
+const flag=(v,hi,med)=>v>=hi?'High':v>=med?'Medium':'Low';
+function segOf(s){
+  const r=s.risk;
+  if(r.acad==='High'&&(s.att<70||s.backlogs>=2))return'critical';
+  if(s.p.academic>=62&&s.p.placement<48)return'gap';
+  if(s.p.placement>=52&&s.p.academic<58)return'slip';
+  if(s.p.lms<58&&s.p.engagement<42)return'disengaged';
+  if(s.score>=SC_STAR&&r.acad==='Low'&&r.plc==='Low')return'star';
+  return'steady';
+}
+let SC_STAR=65;
+function recompute(W=S0.W,R=S0.R){
+  const tw=Object.values(W).reduce((a,b)=>a+b,0)||1;
+  STUDENTS.forEach(s=>{s.score=r1(PILLARS.reduce((a,p)=>a+W[p.k]*s.p[p.k],0)/tw)});
+  MEAN={};PILLARS.forEach(p=>MEAN[p.k]=mean(STUDENTS.map(s=>s.p[p.k])));
+  MEAN.score=mean(STUDENTS.map(s=>s.score));MEAN.bl3=mean(STUDENTS.map(s=>Math.min(s.backlogs,3)));
+  MEAN.cgpa=mean(STUDENTS.map(s=>s.cgpa));MEAN.att=mean(STUDENTS.map(s=>s.att));
+  STUDENTS.forEach(s=>{s.acad=r1(acadRisk(s));s.plcR=r1(plcRisk(s));s.risk={acad:flag(s.acad,R.acHi,R.acMed),plc:flag(s.plcR,R.plHi,R.plMed)}});
+  SC_STAR=[...STUDENTS].map(s=>s.score).sort((a,b)=>b-a)[Math.floor(STUDENTS.length*.2)];
+  STUDENTS.forEach(s=>{s.seg=segOf(s)});
+}
+function scoreDrivers(s,W=S0.W){
+  const tw=Object.values(W).reduce((a,b)=>a+b,0)||1;
+  return PILLARS.map(p=>({k:p.k,label:p.label,val:s.p[p.k],avg:MEAN[p.k],c:W[p.k]/tw*(s.p[p.k]-MEAN[p.k])})).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
+}
+const RT={
+ acad:[['Academics',.45,'academic'],['Attendance',.30,'attendance'],['LMS activity',.15,'lms'],['Feedback',.10,'feedback']],
+ plc:[['Placement readiness',.65,'placement'],['Skills',.25,'skills'],['Engagement',.10,'engagement']]};
+function riskDrivers(s,type){
+  const out=RT[type].map(([l,c,k])=>({label:l,k,val:s.p[k],avg:MEAN[k],c:c*(MEAN[k]-s.p[k])}));
+  if(type==='acad')out.push({label:'Backlogs',k:'backlogs',val:s.backlogs,avg:MEAN.bl3,c:(Math.min(s.backlogs,3)-MEAN.bl3)*4,raw:true});
+  return out.sort((a,b)=>b.c-a.c);
+}
+function detail(s,k){
+  return({academic:`CGPA ${s.cgpa}, ${s.backlogs} backlog${s.backlogs===1?'':'s'}, internals ${s.internal}%`,attendance:`${s.att}% overall`,lms:`${s.lms.logins} logins/wk, ${s.lms.assign}% assignments`,
+   engagement:`${s.eng.events} events, ${s.eng.hack} hackathons, ${s.eng.certs} certifications`,placement:`Aptitude ${s.plc.apt}, coding ${s.plc.code}, mock ${s.plc.mock}`,
+   skills:`Technical ${s.skills.tech}, soft ${s.skills.soft}`,feedback:`Satisfaction ${s.fb.sat}/5, faculty ${s.fb.fac}/5`,backlogs:`${s.backlogs} active backlog${s.backlogs===1?'':'s'}`})[k]||'';
+}
+const ACTION={
+ attendance:'Attendance counselling and a notice to parent or guardian',
+ academic:'Remedial classes and peer tutoring for the weakest subjects',
+ lms:'Nudge on pending LMS assignments and assign a study buddy',
+ engagement:'Nominate for a club or the next hackathon',
+ placement:'Enrol in the aptitude and coding prep track (3 sessions a week)',
+ skills:'Soft-skill workshop and a technical skills reassessment',
+ feedback:'Faculty and student check-in on satisfaction concerns',
+ backlogs:'Backlog clearing plan with a supplementary exam schedule'};
+function actionsFor(s){
+  const all=[...riskDrivers(s,'acad'),...riskDrivers(s,'plc')].filter(d=>d.c>1.2).sort((a,b)=>b.c-a.c);
+  const seen=new Set(),out=[];
+  all.forEach(d=>{if(!seen.has(d.k)&&out.length<4){seen.add(d.k);out.push({k:d.k,text:ACTION[d.k]})}});
+  return out;
+}
+recompute();
+
+/* Pick the demo student: strong academics, weak placement readiness, CSE sem 5 */
+const DEMO=STUDENTS.filter(s=>s.dept==='CSE'&&s.sem===5&&s.seg==='gap').sort((a,b)=>b.plcR-a.plcR)[0]||STUDENTS.find(s=>s.dept==='CSE'&&s.sem===5);
+const ME_FAC=FACULTY[0];
+const ME_ADMIN={name:'Dr. Kavita Iyer',title:'Registrar & College Admin',email:'admin@'+COLLEGE.domain};
+const FAC_CLASSES=['CSE-Y3-A','CSE-Y3-B'];
+const FAC_SUBJECTS=[{name:'Operating Systems',code:'CSE501',cls:['CSE-Y3-A','CSE-Y3-B']},{name:'Machine Learning',code:'CSE506',cls:['CSE-Y3-A']}];
+
+/* Data-quality log produced while integrating the 7 sources */
+const DQ=[
+ {id:'DQ-101',type:'Missing value',roll:STUDENTS[7].id,field:'LMS logins/week',source:'LMS',detail:'Null in export; imputed with department median',status:'Auto-fixed'},
+ {id:'DQ-102',type:'Missing value',roll:STUDENTS[41].id,field:'LMS assignment %',source:'LMS',detail:'Null in export; imputed with class median',status:'Auto-fixed'},
+ {id:'DQ-103',type:'Missing value',roll:STUDENTS[88].id,field:'Mock interview score',source:'Placement',detail:'Student absent from mock round; marked not assessed',status:'Needs review'},
+ {id:'DQ-104',type:'Missing value',roll:STUDENTS[130].id,field:'Soft-skill score',source:'Skills',detail:'Assessment not uploaded by vendor',status:'Needs review'},
+ {id:'DQ-105',type:'Duplicate ID',roll:STUDENTS[19].id,field:'Roll number',source:'LMS',detail:'Two LMS accounts for one roll number; merged on latest login',status:'Auto-fixed'},
+ {id:'DQ-106',type:'Duplicate ID',roll:STUDENTS[203].id,field:'Roll number',source:'Engagement',detail:'Event sheet lists the roll number twice; counts de-duplicated',status:'Auto-fixed'},
+ {id:'DQ-107',type:'Duplicate ID',roll:STUDENTS[277].id,field:'Roll number',source:'Attendance',detail:'Biometric ID mapped to two students; conflict',status:'Needs review'},
+ {id:'DQ-108',type:'Invalid marks',roll:STUDENTS[56].id,field:'Mid-1 (Data Structures)',source:'Academic',detail:'Entered 38 against a maximum of 30; capped at 30',status:'Auto-fixed'},
+ {id:'DQ-109',type:'Invalid marks',roll:STUDENTS[164].id,field:'Assignment marks',source:'Academic',detail:'Negative value (-2); set to 0 pending faculty confirmation',status:'Needs review'},
+ {id:'DQ-110',type:'Invalid marks',roll:STUDENTS[240].id,field:'Mid-2 (Control Systems)',source:'Academic',detail:'Entered 45 against a maximum of 30; capped at 30',status:'Auto-fixed'},
+ {id:'DQ-111',type:'Incomplete profile',roll:STUDENTS[12].id,field:'Guardian phone',source:'Academic',detail:'Missing guardian contact',status:'Needs review'},
+ {id:'DQ-112',type:'Incomplete profile',roll:STUDENTS[95].id,field:'Section',source:'Academic',detail:'Section blank; inferred from enrollment',status:'Auto-fixed'},
+ {id:'DQ-113',type:'Incomplete profile',roll:STUDENTS[300].id,field:'Mentor',source:'Academic',detail:'No mentor assigned',status:'Needs review'}];
+
+/* weekly trend for the dashboard (ends at today's real values) */
+const WEEKS=['W1','W2','W3','W4','W5','W6','W7','W8'];
+function weekly(){
+  const rr=mulberry32(77);
+  const endAtt=MEAN.att,endScore=MEAN.score,endHigh=STUDENTS.filter(s=>s.risk.acad==='High').length;
+  const att=[],sc=[],hi=[];
+  for(let i=0;i<8;i++){const t=7-i;att.push(r1(endAtt+t*.7+(rr()-.5)*1.4-(t>3?1.5:0)));sc.push(r1(endScore-t*.35+(rr()-.5)*.8));hi.push(r0(endHigh-t*1.6+(rr()-.5)*4));}
+  att[7]=r1(endAtt);sc[7]=r1(endScore);hi[7]=endHigh;
+  return{att,sc,hi};
+}
+/* ===== helpers ===== */
+const S={view:'landing',role:null,user:null,route:null,navOpen:false,W:{...S0.W},R:{...S0.R},
+  f:{dept:'All',sem:'All',risk:'All',seg:'All',q:'',sort:'risk',dir:-1,page:0},
+  notifs:[],interventions:[],reads:{},login:{email:'',err:''}};
+const $=(s,el=document)=>el.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f1=n=>(Math.round(n*10)/10).toFixed(1);
+const pc=(n,d=0)=>n.toFixed(d)+'%';
+const ini=n=>n.replace(/^(Dr\.|Prof\.)\s+/,'').split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+const ICON={
+ home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+ users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.2c2.6.2 4.5 2 4.5 4.8"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/>',
+ building:'<path d="M4 21V6l8-3 8 3v15"/><path d="M9 21v-5h6v5M8 9h2M14 9h2M8 12.5h2M14 12.5h2"/>',
+ book:'<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/>',
+ grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+ cal:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+ check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/>',
+ chart:'<path d="M4 20V4M4 20h16"/><path d="M8 16l3.5-5 3 3L19 7"/>',
+ alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>',
+ plug:'<path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v3"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>',
+ bell:'<path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/>',
+ search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>',
+ file:'<path d="M6 2.5h8l5 5v14H6z"/><path d="M14 2.5v5h5M9 13h6M9 17h6"/>',
+ mega:'<path d="M3 10v4l11 5V5z"/><path d="M14 8c3 .5 5 2 5 4s-2 3.5-5 4M6 14l1.5 6"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+ msg:'<path d="M4 4h16v12H9l-5 4z"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+ spark:'<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>',
+ logout:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',
+ menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M5 5l1.8 1.8M17.2 17.2L19 19M19 5l-1.8 1.8M6.8 17.2L5 19"/>',
+ moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+ x:'<path d="M5 5l14 14M19 5L5 19"/>',
+ db:'<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ flag:'<path d="M5 21V4M5 4h12l-2 4 2 4H5"/>',
+ refresh:'<path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/>',
+ layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+ trend:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+ dot:'<circle cx="12" cy="12" r="3"/>'};
+const ic=(n,s=18)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]||ICON.dot}</svg>`;
+const MARK=(s=30)=>`<svg width="${s}" height="${s}" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M4 17h6l3-8 5 15 3-9h7" fill="none" stroke="var(--accent-ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ACT={},INP={},FORM={},R={};
+let theme=null;
+try{theme=localStorage.getItem('piq-theme')}catch(e){}
+function applyTheme(){if(theme)document.documentElement.setAttribute('data-theme',theme);else document.documentElement.removeAttribute('data-theme')}
+function isDark(){return theme?theme==='dark':window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches}
+function toast(m,k){const t=document.createElement('div');t.className='toast '+(k||'');t.innerHTML=ic(k==='bad'?'alert':'check',16)+'<span>'+esc(m)+'</span>';$('#toasts').appendChild(t);setTimeout(()=>t.remove(),3400)}
+function modal(html,wide){$('#modal').innerHTML=`<div class="scrim mid" data-act="mclose" data-scrim="1"><div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true">${html}</div></div>`}
+function closeModal(){$('#modal').innerHTML=''}
+function upd(id){const el=document.getElementById(id);if(el&&R[id])el.innerHTML=R[id]()}
+const riskPill=l=>`<span class="pill ${l==='High'?'high':l==='Medium'?'med':'low'}">${l}</span>`;
+const segPill=k=>{const g=SEGMAP[k];return`<span class="pill plain" style="background:color-mix(in srgb,var(${g.color}) 16%,transparent);color:var(--ink)"><i style="width:8px;height:8px;border-radius:2px;background:var(${g.color});display:inline-block"></i>${esc(g.label)}</span>`};
+const scBar=v=>{const c=v>=72?'--good':v>=58?'--c1':v>=45?'--warn':'--bad';return`<div class="row" style="gap:8px;flex-wrap:nowrap"><b class="mono" style="min-width:34px">${f1(v)}</b><div class="sbar" style="flex:1"><b style="width:${v}%;background:var(${c})"></b></div></div>`};
+const scoreColor=v=>v>=72?'--good':v>=58?'--c1':v>=45?'--warn':'--bad';
+const ph=(code,t,sub,act='')=>`<div class="ph"><div><span class="tag">${code}</span><h1>${esc(t)}</h1>${sub?`<p>${esc(sub)}</p>`:''}</div><div class="row">${act}</div></div>`;
+const kpi=(k,v,s,cls='')=>`<div class="card kpi"><span class="k">${k}</span><span class="v ${cls}">${v}</span><span class="s">${s||''}</span></div>`;
+const cardH=(t,sub,act='')=>`<div class="card-h"><div><h3>${t}</h3>${sub?`<p>${sub}</p>`:''}</div>${act}</div>`;
+const byId=id=>STUDENTS.find(s=>s.id===id);
+function download(){toast('Downloads are disabled in this preview. Use Copy instead.','bad')}
+function copyText(t,msg){
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(msg||'Copied')}catch(e){toast('Select and copy manually','bad')}ta.remove()};
+  try{navigator.clipboard.writeText(t).then(()=>toast(msg||'Copied'),fb)}catch(e){fb()}
+}
+function csv(cols,rows){const q=v=>'"'+String(v).replace(/"/g,'""')+'"';return[cols.map(q).join(','),...rows.map(r=>r.map(q).join(','))].join('\n')}
+
+/* ===== charts (SVG + CSS, all colours from tokens) ===== */
+function hbars(items,opt={}){
+  const mx=opt.max||Math.max(...items.map(i=>i.v),1);
+  return items.map(i=>`<div class="hb ${i.act?'clk':''}" ${i.act?`data-act="${i.act}" data-v="${esc(i.key||'')}"`:''}><span>${esc(i.label)}</span><div class="tr"><div class="fl" style="width:${Math.max(i.v/mx*100,1)}%;background:var(${i.color||'--accent'})"></div></div><b class="mono">${i.txt??i.v}</b></div>`).join('');
+}
+function stacked(parts){const t=parts.reduce((a,p)=>a+p.v,0)||1;return`<div class="tr" style="height:12px;background:var(--surface2);border-radius:6px;overflow:hidden;display:flex">${parts.map(p=>`<span title="${esc(p.label)}: ${p.v}" style="width:${p.v/t*100}%;background:var(${p.color})"></span>`).join('')}</div>`}
+function hist(vals,bins=10,lo=0,hi=100){
+  const w=640,h=200,pl=26,pb=22,pt=16,cnt=Array(bins).fill(0);
+  vals.forEach(v=>cnt[Math.min(bins-1,Math.max(0,Math.floor((v-lo)/(hi-lo)*bins)))]++);
+  const mx=Math.max(...cnt,1),bw=(w-pl)/bins;
+  let o=`<svg class="svgc" viewBox="0 0 ${w} ${h}" role="img" aria-label="Score distribution">`;
+  [0,.5,1].forEach(t=>{const y=h-pb-t*(h-pb-pt);o+=`<line class="gl" x1="${pl}" x2="${w}" y1="${y}" y2="${y}"/><text x="${pl-4}" y="${y+3}" text-anchor="end">${Math.round(mx*t)}</text>`});
+  cnt.forEach((c,i)=>{const mid=lo+(i+.5)*(hi-lo)/bins,col=mid>=72?'--good':mid>=58?'--c1':mid>=45?'--warn':'--bad',bh=c/mx*(h-pb-pt),x=pl+i*bw+3;
+    o+=`<rect x="${x}" y="${h-pb-bh}" width="${bw-6}" height="${bh}" rx="3" style="fill:var(${col})"/><text x="${x+(bw-6)/2}" y="${h-pb-bh-4}" text-anchor="middle">${c}</text><text x="${x}" y="${h-6}">${lo+i*(hi-lo)/bins}</text>`});
+  return o+'</svg>';
+}
+function lineChart(series,labels,{min,max,h=210,unit=''}={}){
+  const w=640,pl=36,pr=16,pt=14,pb=24,all=series.flatMap(s=>s.v);
+  min=min??Math.floor(Math.min(...all)-2);max=max??Math.ceil(Math.max(...all)+2);
+  const X=i=>pl+i*(w-pl-pr)/(labels.length-1),Y=v=>h-pb-(v-min)/(max-min)*(h-pb-pt);
+  let o=`<svg class="svgc" viewBox="0 0 ${w} ${h}" role="img">`;
+  for(let i=0;i<=4;i++){const v=min+(max-min)*i/4,y=Y(v);o+=`<line class="gl" x1="${pl}" x2="${w-pr}" y1="${y}" y2="${y}"/><text x="${pl-5}" y="${y+3}" text-anchor="end">${Math.round(v*10)/10}${unit}</text>`}
+  labels.forEach((l,i)=>o+=`<text x="${X(i)}" y="${h-6}" text-anchor="middle">${l}</text>`);
+  series.forEach((s,si)=>{
+    const pts=s.v.map((v,i)=>`${X(i)},${Y(v)}`).join(' ');
+    if(si===0)o+=`<polygon points="${X(0)},${h-pb} ${pts} ${X(s.v.length-1)},${h-pb}" style="fill:var(${s.color});opacity:.12"/>`;
+    o+=`<polyline points="${pts}" fill="none" style="stroke:var(${s.color})" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const li=s.v.length-1;o+=`<circle cx="${X(li)}" cy="${Y(s.v[li])}" r="4.5" style="fill:var(${s.color});stroke:var(--surface)" stroke-width="2"/><text x="${X(li)}" y="${Y(s.v[li])-9}" text-anchor="end" style="fill:var(--ink);font-weight:500">${s.v[li]}${unit}</text>`;
+  });
+  return o+'</svg>';
+}
+function scatter(pts,{xl,yl,xmin,xmax,ymin,ymax,vline}){
+  const w=640,h=300,pl=40,pr=14,pt=12,pb=34,X=v=>pl+(v-xmin)/(xmax-xmin)*(w-pl-pr),Y=v=>h-pb-(v-ymin)/(ymax-ymin)*(h-pb-pt);
+  let o=`<svg class="svgc" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(yl)} against ${esc(xl)}">`;
+  for(let i=0;i<=4;i++){const xv=xmin+(xmax-xmin)*i/4,yv=ymin+(ymax-ymin)*i/4;
+    o+=`<line class="gl" x1="${X(xv)}" x2="${X(xv)}" y1="${pt}" y2="${h-pb}"/><text x="${X(xv)}" y="${h-pb+13}" text-anchor="middle">${Math.round(xv*10)/10}</text><line class="gl" x1="${pl}" x2="${w-pr}" y1="${Y(yv)}" y2="${Y(yv)}"/><text x="${pl-5}" y="${Y(yv)+3}" text-anchor="end">${Math.round(yv*10)/10}</text>`}
+  if(vline!=null)o+=`<line x1="${X(vline)}" x2="${X(vline)}" y1="${pt}" y2="${h-pb}" stroke-dasharray="4 4" style="stroke:var(--muted)"/><text x="${X(vline)+4}" y="${pt+10}">${vline}% rule</text>`;
+  pts.forEach(p=>o+=`<circle class="pt" data-act="open" data-v="${p.id}" cx="${X(p.x)}" cy="${Y(p.y)}" r="4.2" style="fill:var(${p.c});fill-opacity:.72"><title>${esc(p.t)}</title></circle>`);
+  o+=`<text x="${(pl+w-pr)/2}" y="${h-4}" text-anchor="middle">${xl}</text><text x="10" y="${(pt+h-pb)/2}" transform="rotate(-90 10 ${(pt+h-pb)/2})" text-anchor="middle">${yl}</text>`;
+  return o+'</svg>';
+}
+function donut(items,center){
+  const r=54,C=2*Math.PI*r,t=items.reduce((a,i)=>a+i.v,0)||1;let off=0;
+  let o=`<svg viewBox="0 0 140 140" width="150" height="150" role="img"><g transform="rotate(-90 70 70)">`;
+  items.forEach(i=>{const len=i.v/t*C;o+=`<circle cx="70" cy="70" r="${r}" fill="none" stroke-width="18" style="stroke:var(${i.color})" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}"/>`;off+=len});
+  return o+`</g><text x="70" y="68" text-anchor="middle" style="font-family:var(--f-d);font-weight:700;font-size:24px;fill:var(--ink)">${center[0]}</text><text x="70" y="86" text-anchor="middle" style="font-size:10px;fill:var(--muted)">${center[1]}</text></svg>`;
+}
+function gauge(v,size=130,label='of 100'){
+  const r=size/2-10,C=2*Math.PI*r,col=scoreColor(v);
+  return`<div class="gauge" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="10" style="stroke:var(--surface2)"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="10" stroke-linecap="round" style="stroke:var(${col})" stroke-dasharray="${v/100*C} ${C}" transform="rotate(-90 ${size/2} ${size/2})"/></svg><div class="gv"><b class="num">${f1(v)}</b><span>${label}</span></div></div>`;
+}
+function radar(vals,refs,size=250){
+  const n=vals.length,c=size/2,R0=size/2-38,pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+Math.cos(a)*R0*v/100,c+Math.sin(a)*R0*v/100]};
+  let o=`<svg class="svgc" viewBox="0 0 ${size} ${size}" style="max-width:${size}px;margin:auto" role="img">`;
+  [25,50,75,100].forEach(g=>o+=`<polygon class="gl" fill="none" points="${vals.map((_,i)=>pt(i,g).join(',')).join(' ')}"/>`);
+  vals.forEach((v,i)=>{const[x,y]=pt(i,112);o+=`<line class="gl" x1="${c}" y1="${c}" x2="${pt(i,100)[0]}" y2="${pt(i,100)[1]}"/><text x="${x}" y="${y+3}" text-anchor="middle">${v.l}</text>`});
+  o+=`<polygon points="${refs.map((v,i)=>pt(i,v).join(',')).join(' ')}" fill="none" stroke-dasharray="4 3" style="stroke:var(--muted)" stroke-width="1.6"/>`;
+  o+=`<polygon points="${vals.map((v,i)=>pt(i,v.v).join(',')).join(' ')}" style="fill:var(--accent);fill-opacity:.2;stroke:var(--accent)" stroke-width="2"/>`;
+  return o+'</svg>';
+}
+function diverge(rows,{pos='--good',neg='--bad',fmt=v=>(v>0?'+':'')+v.toFixed(1)}={}){
+  const mx=Math.max(...rows.map(r=>Math.abs(r.c)),.1);
+  return rows.map(r=>`<div class="div-row" title="${esc(r.tip||'')}"><span>${esc(r.label)}</span><div class="tr"><div class="b" style="${r.c>=0?`left:50%;width:${r.c/mx*50}%;background:var(${pos})`:`right:50%;width:${-r.c/mx*50}%;background:var(${neg})`}"></div></div><b class="mono" style="text-align:right">${fmt(r.c)}</b></div>`).join('');
+}
+function tbl(cols,rows,{cls='',empty='Nothing to show.'}={}){
+  if(!rows.length)return`<div class="tw"><div class="empty">${empty}</div></div>`;
+  return`<div class="tw"><table class="${cls}"><thead><tr>${cols.map(c=>typeof c==='string'?`<th>${c}</th>`:`<th class="${c.srt?'srt':''}" ${c.srt?`data-act="sort" data-v="${c.srt}"`:''}>${c.h}${c.srt&&S.f.sort===c.srt?(S.f.dir>0?' ↑':' ↓'):''}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
+const PAGE=12;
+function pager(total,id){
+  const pages=Math.max(1,Math.ceil(total/PAGE));if(S.f.page>=pages)S.f.page=pages-1;
+  return`<div class="pager"><span class="muted">Showing ${total?S.f.page*PAGE+1:0}–${Math.min(total,(S.f.page+1)*PAGE)} of ${total}</span><div class="row"><button class="btn sm" data-act="pg" data-v="-1" data-r="${id}" ${S.f.page<=0?'disabled':''}>Previous</button><span class="mono muted">${S.f.page+1} / ${pages}</span><button class="btn sm" data-act="pg" data-v="1" data-r="${id}" ${S.f.page>=pages-1?'disabled':''}>Next</button></div></div>`;
+}
+
+/* ===== student drawer: the explainable view ===== */
+function openStudent(id){
+  const s=byId(id);if(!s)return;
+  const sd=scoreDrivers(s),ad=riskDrivers(s,'acad'),pd=riskDrivers(s,'plc'),acts=actionsFor(s);
+  const radarV=PILLARS.map(p=>({l:p.short,v:s.p[p.k]})),radarR=PILLARS.map(p=>MEAN[p.k]);
+  const drv=(arr,type)=>arr.filter(d=>d.c>.8).slice(0,3).map(d=>`<div class="li" style="padding:8px 0"><span class="pill ${type==='acad'?'high':'med'} plain">+${d.c.toFixed(1)}</span><div class="grow"><b>${esc(d.label)}</b><div class="muted" style="font-size:12.5px">${esc(detail(s,d.k))}${d.raw?'':` · cohort average ${r0(d.avg)}`}</div></div></div>`).join('')||`<p class="muted" style="padding:8px 0">No indicator is pulling this risk above the cohort average.</p>`;
+  const iv=S.interventions.find(i=>i.sid===id&&i.status!=='Completed');
+  $('#drawer').innerHTML=`<div class="scrim" data-act="dclose" data-scrim="1"><aside class="drawer" role="dialog" aria-modal="true" aria-label="Student detail">
+   <div class="row spread" style="align-items:flex-start"><div class="row" style="flex-wrap:nowrap"><div class="av" style="width:46px;height:46px">${ini(s.name)}</div><div><h2 style="font-size:22px">${esc(s.name)}</h2><div class="muted mono" style="font-size:12.5px">${s.id} · ${s.dept} · Sem ${s.sem} · Sec ${s.sec}</div></div></div><button class="iconbtn" data-act="dclose" aria-label="Close">${ic('x')}</button></div>
+   <div class="row">${segPill(s.seg)}${riskPill(s.risk.acad).replace('">','">Academic: ')}${riskPill(s.risk.plc).replace('">','">Placement: ')}</div>
+   <div class="card flat"><div class="row" style="gap:20px;flex-wrap:nowrap;align-items:center">${gauge(s.score)}<div class="grow" style="min-width:0"><div class="lbl">Student Success Score</div><p style="margin:4px 0 8px">${s.score>=MEAN.score?'Above':'Below'} the college average of ${f1(MEAN.score)} by <b>${f1(Math.abs(s.score-MEAN.score))}</b> points. ${s.delta>=0?`Up <b class="up">${s.delta}</b>`:`Down <b class="dn">${Math.abs(s.delta)}</b>`} over the last 4 weeks.</p><button class="btn sm" data-act="method">How is this calculated?</button></div></div></div>
+   <div class="card flat">${cardH('Why this score','Each bar is that indicator’s contribution relative to the college average, in score points.')}${diverge(sd.map(d=>({label:d.label,c:d.c,tip:detail(s,d.k)})))}<div class="legend" style="margin-top:8px"><span><i style="background:var(--good)"></i>Lifts the score</span><span><i style="background:var(--bad)"></i>Pulls it down</span></div></div>
+   <div class="card flat">${cardH('Why the risk flags','Top indicators pushing risk above the college average.')}<div class="lbl" style="margin-top:4px">Academic risk ${f1(s.acad)} ${riskPill(s.risk.acad)}</div>${drv(ad,'acad')}<div class="lbl" style="margin-top:12px">Placement risk ${f1(s.plcR)} ${riskPill(s.risk.plc)}</div>${drv(pd,'plc')}</div>
+   <div class="card flat">${cardH('Profile against college average','Solid shape is this student, dashed is the cohort.')}${radar(radarV,radarR)}</div>
+   <div class="card flat">${cardH('Unified record','One row per source, joined on roll number.')}<div class="stack" style="gap:6px">${PILLARS.map(p=>`<div class="row spread" style="font-size:13px;gap:8px"><span><span class="tag">${p.src}</span></span><span class="muted" style="text-align:right">${esc(detail(s,p.k))}</span></div>`).join('')}</div></div>
+   <div class="card flat">${cardH('Subject attendance')}${hbars(s.subj.map(x=>({label:x.name,v:x.att,txt:x.att+'%',color:x.att<S.R.att?'--bad':'--c1'})),{max:100})}</div>
+   <div class="card flat">${cardH('Recommended actions','Generated from the strongest risk drivers.')}${acts.length?acts.map(a=>`<div class="li" style="padding:8px 0">${ic('target',16)}<span>${esc(a.text)}</span></div>`).join(''):'<p class="muted">No action needed. Keep monitoring.</p>'}
+     ${S.role==='student'?'':iv?`<div class="callout" style="margin-top:10px">Intervention ${iv.status.toLowerCase()} with ${esc(iv.mentor)}.</div>`:`<button class="btn primary" style="margin-top:10px" data-act="mkiv" data-v="${s.id}">${ic('plus',16)} Create intervention plan</button>`}</div>
+  </aside></div>`;
+}
+function closeDrawer(){$('#drawer').innerHTML=''}
+function methodModal(){
+  modal(`<div class="row spread"><h2 style="font-size:22px">How the Student Success Score works</h2><button class="iconbtn" data-act="mclose" aria-label="Close">${ic('x')}</button></div>
+  <p class="muted" style="margin:8px 0 14px">Seven indicator groups are scaled to 0–100 and combined as a weighted average. Weights are editable in AI Analytics.</p>
+  ${tbl(['Indicator group','Built from','Weight'],PILLARS.map(p=>`<tr><td><b>${p.label}</b><div class="sub">${p.src} source</div></td><td>${p.desc}</td><td class="mono">${r0(S.W[p.k]/Object.values(S.W).reduce((a,b)=>a+b,0)*100)}%</td></tr>`))}
+  <div class="stack" style="margin-top:14px;font-size:13.5px"><p><b>Success Score</b> = Σ weight × indicator group score.</p>
+  <p><b>Academic risk</b> = 100 − (0.45 Academics + 0.30 Attendance + 0.15 LMS + 0.10 Feedback) + 4 per backlog (max 3). High at ${S.R.acHi}+, Medium at ${S.R.acMed}+.</p>
+  <p><b>Placement risk</b> = 100 − (0.65 Placement + 0.25 Skills + 0.10 Engagement). High at ${S.R.plHi}+, Medium at ${S.R.plMed}+.</p>
+  <p><b>Explainability</b>: each driver is its weight × the gap to the college average, so the bars add up to the difference from the average score.</p></div>`,true);
+}
+
+/* ===== events ===== */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');if(!t)return;
+  if(t.dataset.scrim&&e.target!==t)return;
+  const a=ACT[t.dataset.act];if(a)a(t,e);
+});
+document.addEventListener('input',e=>{const t=e.target.closest('[data-in]');if(t&&INP[t.dataset.in])INP[t.dataset.in](t,e)});
+document.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('[data-form]');if(f&&FORM[f.dataset.form])FORM[f.dataset.form](f,e)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#modal').innerHTML)closeModal();else if($('#drawer').innerHTML)closeDrawer()}});
+ACT.mclose=()=>closeModal();
+ACT.dclose=()=>closeDrawer();
+ACT.open=t=>openStudent(t.dataset.v);
+ACT.method=()=>methodModal();
+ACT.theme=()=>{theme=isDark()?'light':'dark';try{localStorage.setItem('piq-theme',theme)}catch(e){}applyTheme();render()};
+ACT.pg=t=>{S.f.page+=+t.dataset.v;upd(t.dataset.r)};
+ACT.sort=t=>{const k=t.dataset.v;if(S.f.sort===k)S.f.dir*=-1;else{S.f.sort=k;S.f.dir=k==='name'?1:-1}S.f.page=0;upd('tbl')};
+/* ===== roles, navigation, seed state ===== */
+const NAV={
+ admin:[
+  {t:'Overview',i:[['A01','Dashboard','home'],['A11','AI Analytics','spark'],['A12','At-Risk Monitoring','alert'],['A13','Interventions','target']]},
+  {t:'People',i:[['A02','Students','users'],['A03','Faculty','user'],['A19','Users & Roles','shield']]},
+  {t:'Academic structure',i:[['A04','Departments','building'],['A05','Courses & Subjects','book'],['A06','Classes & Sections','layers'],['A07','Faculty Assignment','flag'],['A08','Enrollment','check'],['A21','Academic Calendar','cal']]},
+  {t:'Records',i:[['A09','Attendance','clock'],['A10','Marks & Exams','file'],['A17','Reports','chart']]},
+  {t:'Data platform',i:[['A14','Connections','plug'],['A15','Mapping Studio','db'],['A16','Synchronization','refresh'],['A24','Data Quality','check']]},
+  {t:'Administration',i:[['A18','Announcements','mega'],['A20','Rules & Policies','gear'],['A22','Audit Logs','shield'],['A23','College Profile','building']]}],
+ faculty:[
+  {t:'Overview',i:[['F01','Dashboard','home'],['F10','AI Risk Analysis','spark'],['F12','Intervention Tracking','target']]},
+  {t:'Teaching',i:[['F02','My Classes','layers'],['F03','My Subjects','book'],['F04','Student List','users'],['F15','Timetable','cal']]},
+  {t:'Attendance',i:[['F05','Mark Attendance','check'],['F06','Attendance History','clock']]},
+  {t:'Assessment',i:[['F07','Marks Entry','file'],['F08','Review & Publish','flag']]},
+  {t:'Students',i:[['F09','Academic Performance','trend'],['F11','Mentoring','msg'],['F16','Student Requests','bell']]},
+  {t:'Reports & notices',i:[['F13','Class Reports','chart'],['F14','Announcements','mega'],['F17','My Profile','user']]}],
+ student:[
+  {t:'My success',i:[['S01','Dashboard','home'],['S07','AI Insights','spark'],['S13','Recommendations','target'],['S06','Academic Progress','trend']]},
+  {t:'Academics',i:[['S03','Attendance','clock'],['S04','Marks','file'],['S05','Semester Results','chart'],['S08','Subjects','book'],['S09','Timetable','cal']]},
+  {t:'Support',i:[['S10','Mentoring & Support','msg'],['S12','Requests','bell'],['S11','Announcements','mega']]},
+  {t:'Account',i:[['S02','My Profile','user'],['S14','Reports','file'],['S15','Settings','gear']]}]};
+const HOME={admin:'A01',faculty:'F01',student:'S01'};
+const ROLE_LABEL={admin:'College Admin',faculty:'Faculty',student:'Student'};
+const VIEWS={};
+const titleOf=id=>{if(id==='C07')return'Notifications';if(id==='C08')return'Account & Security';for(const g of NAV[S.role])for(const x of g.i)if(x[0]===id)return x[1];return''};
+
+const mentors=FACULTY.map(f=>f.name);
+(function seed(){
+  const top=[...STUDENTS].sort((a,b)=>Math.max(b.acad,b.plcR*.9)-Math.max(a.acad,a.plcR*.9)).slice(0,16);
+  const st=['In progress','In progress','Planned','Completed','Planned','In progress','Completed','In progress','Planned','In progress','Completed','Planned','In progress','Planned','Completed','In progress'];
+  const typ=['Attendance recovery','Remedial classes','Placement prep track','Mentor counselling','Backlog clearing plan','Coding bootcamp','Parent meeting','LMS engagement plan'];
+  top.forEach((s,i)=>S.interventions.push({id:'INT-'+(201+i),sid:s.id,type:typ[i%typ.length],mentor:s.mentor,status:st[i],created:`Oct ${1+i%8}`,due:`Oct ${14+i%12}`,note:'',scoreAt:s.score,gain:st[i]==='Completed'?r1(2+rnd()*6):null}));
+  S.notifs={
+   admin:[['alert','12 students crossed into High academic risk this week','Today, 9:10','Analytics'],['refresh','Placement source synced. 3 duplicate IDs merged, 2 records need review.','Today, 2:00','Data'],['check','Marks for Machine Learning (CSE-Y3-A) are waiting for approval','Yesterday','Approvals'],['mega','Mid-semester examinations begin on 20 Oct','Oct 8','Calendar']],
+   faculty:[['alert','4 students in CSE-Y3-A and CSE-Y3-B moved to High risk','Today, 9:10','Analytics'],['file','Mid-1 marks for Operating Systems are in draft. Submit for approval.','Today','Marks'],['bell','Two students requested an attendance clarification','Yesterday','Requests'],['mega','Faculty meeting, Friday 3:30 pm, Seminar Hall','Oct 8','Notice']],
+   student:[['spark','Your Success Score changed by '+DEMO.delta+' points this month','Today','Insights'],['clock','Attendance in Computer Networks is close to the 75% limit','Yesterday','Attendance'],['file','Mid-1 marks published for Operating Systems','Oct 7','Marks'],['mega','Campus placement drive registrations open','Oct 5','Placement']]};
+})();
+
+/* ===== render root ===== */
+function render(){
+  applyTheme();
+  const v=S.view,r=$('#root');
+  if(v==='landing')r.innerHTML=landing();
+  else if(v==='login')r.innerHTML=loginView();
+  else if(v==='forgot')r.innerHTML=forgotView();
+  else if(v==='college')r.innerHTML=collegeView();
+  else if(v==='redirect')r.innerHTML=redirectView();
+  else if(v==='app')r.innerHTML=appShell();
+  if(v==='redirect'){setTimeout(()=>{if(S.view==='redirect'){S.view='app';S.route=HOME[S.role];render()}},1500)}
+}
+const themeBtn=()=>`<button class="iconbtn" data-act="theme" aria-label="Toggle theme">${ic(isDark()?'sun':'moon')}</button>`;
+
+/* ===== C01 landing ===== */
+function landing(){
+  const pv=[...STUDENTS].sort((a,b)=>b.acad-a.acad)[0],dr=riskDrivers(pv,'acad').filter(d=>d.c>0).slice(0,4);
+  const srcs=['Academic','Attendance','LMS','Engagement','Placement','Skills','Feedback'];
+  return`<div class="land">
+  <nav class="l-nav"><div class="brand">${MARK(30)}PulseIQ</div><div class="row">${themeBtn()}<button class="btn primary" data-act="tologin">Sign in</button></div></nav>
+  <section class="hero"><div>
+    <span class="pill acc plain">AI-powered student analytics</span>
+    <h1 style="margin-top:14px">Find the students who need help <em>before the results do.</em></h1>
+    <p class="lead">PulseIQ joins attendance, marks, LMS activity, placement prep, skills and feedback into one student record. It scores every student, explains the score, and tells faculty where to act first.</p>
+    <div class="row"><button class="btn primary" data-act="tologin">${ic('logout',16)} Sign in with college email</button><button class="btn" data-act="demo" data-v="admin">Try the admin demo</button></div>
+    <svg class="ecg" viewBox="0 0 600 56" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30h130l12-8 10 8h40l10-6 8 6h30l12-26 14 50 12-24h26l10-8 10 8h90l14-8 10 8h40l12-20 12 36 12-16h60"/></svg>
+  </div>
+  <div class="pv"><div class="row spread"><div><b style="font-family:var(--f-d);font-size:17px">${esc(pv.name)}</b><div class="muted mono" style="font-size:12px">${pv.id} · ${pv.dept} · Sem ${pv.sem}</div></div>${riskPill(pv.risk.acad)}</div>
+   <div class="row" style="flex-wrap:nowrap;gap:18px">${gauge(pv.score,104)}<div class="grow" style="min-width:0"><div class="lbl">Why the academic risk flag</div>${diverge(dr.map(d=>({label:d.label,c:d.c})),{pos:'--bad',neg:'--good'})}</div></div>
+   <div class="callout bad">Suggested: ${esc((actionsFor(pv)[0]||{}).text||'Mentor check-in')}.</div></div></section>
+  <section class="band"><h2>One record from seven systems</h2><div class="grid g3"><div class="stack" style="gap:8px"><h3>Unify</h3><p class="muted">Connect the databases and exports your college already uses. PulseIQ maps columns, cleans duplicates and gaps, and keeps a log of every fix.</p><div class="src">${srcs.map(s=>`<span class="tag">${s}</span>`).join('')}</div></div>
+  <div class="stack" style="gap:8px"><h3>Score and flag</h3><p class="muted">A weighted Student Success Score, separate risk flags for academics and placement, and six segments such as “academic strong, placement gap”.</p></div>
+  <div class="stack" style="gap:8px"><h3>Explain and act</h3><p class="muted">Every score and flag shows the indicators behind it. Mentors, plans and outcomes are tracked in one place.</p></div></div></section>
+  <section class="band" style="background:var(--bg)"><h2>Three portals, one database</h2><div class="grid g3">
+   ${[['admin','College Admin','24 screens','Run the college: people, structure, data connections, college-wide analytics and interventions.'],['faculty','Faculty','17 screens','Take attendance, enter marks, see which of your students need support, record mentoring.'],['student','Student','15 screens','See your own attendance, marks, a clear explanation of your score and what to improve.']].map(([k,t,n,d])=>`<div class="card stack" style="gap:8px"><div class="row spread"><h3>${t}</h3><span class="tag">${n}</span></div><p class="muted">${d}</p><button class="btn sm" style="align-self:flex-start" data-act="demo" data-v="${k}">Open ${t.toLowerCase()} demo</button></div>`).join('')}</div>
+   <p class="hint" style="margin-top:16px">Prototype running on generated sample data for ${STUDENTS.length} students. 8 common screens bring the total to 64.</p></section></div>`;
+}
+ACT.tologin=()=>{S.view='login';render();window.scrollTo(0,0)};
+ACT.toland=()=>{S.view='landing';render()};
+const DEMOS={admin:ME_ADMIN.email,faculty:ME_FAC.email,student:DEMO.email};
+ACT.demo=t=>{S.login={email:DEMOS[t.dataset.v],err:''};S.view='login';render();const p=$('#lpw');if(p){p.value='pulse@2026'}};
+
+/* ===== C02/C03 login ===== */
+function detect(email){
+  const m=String(email).trim().toLowerCase().match(/@(.+)$/);
+  if(!m||!m[1])return{cls:'no',t:'Type your institutional email and PulseIQ finds your college.'};
+  if(m[1]===COLLEGE.domain)return{cls:'',t:`${COLLEGE.name} detected`};
+  if(COLLEGE.domain.startsWith(m[1]))return{cls:'no',t:'Keep typing…'};
+  return{cls:'no',t:`${m[1]} is not a registered college domain`};
+}
+R.det=()=>{const d=detect(S.login.email);return`<div class="det ${d.cls}">${ic(d.cls?'search':'building',16)}<span>${esc(d.t)}</span></div>`};
+function loginView(){
+  return`<div class="auth"><div class="auth-l"><div class="brand">${MARK(30)}PulseIQ</div><div class="stack"><h2>Every student, one clear picture.</h2><p>Sign in with your institutional email. PulseIQ identifies your college and opens the portal that matches your role.</p></div><div class="hint" style="color:var(--side-mut)">Data is isolated by college and enforced in the backend.</div></div>
+  <div class="auth-r"><form class="auth-card" data-form="login" novalidate>
+   <button type="button" class="btn ghost sm" style="align-self:flex-start" data-act="toland">← Back</button>
+   <div><h1 style="font-size:28px">Sign in</h1><p class="muted" style="margin-top:4px">Use your college email and password.</p></div>
+   <div class="fld"><label for="lem">Institutional email</label><input class="inp" id="lem" type="email" autocomplete="username" placeholder="name@${COLLEGE.domain}" value="${esc(S.login.email)}" data-in="lemail"></div>
+   <div id="det">${R.det()}</div>
+   <div class="fld"><label for="lpw">Password</label><div class="row" style="flex-wrap:nowrap;gap:8px"><input class="inp" id="lpw" type="password" autocomplete="current-password" placeholder="At least 6 characters"><button type="button" class="btn sm" data-act="showpw">Show</button></div></div>
+   <div class="err" id="lerr" role="alert">${esc(S.login.err)}</div>
+   <button class="btn primary" style="justify-content:center;padding:11px" type="submit">Sign in</button>
+   <button type="button" class="btn ghost sm" style="align-self:flex-start" data-act="tofp">Forgot password?</button>
+   <div><div class="lbl" style="margin-bottom:8px">Demo accounts</div><div class="demo">
+    <button type="button" data-act="fill" data-v="admin"><b>College Admin</b>${esc(ME_ADMIN.name)}</button>
+    <button type="button" data-act="fill" data-v="faculty"><b>Faculty</b>${esc(ME_FAC.name)}</button>
+    <button type="button" data-act="fill" data-v="student"><b>Student</b>${esc(DEMO.name)}</button></div><p class="hint" style="margin-top:8px">Prototype: any password of 6 or more characters works.</p></div>
+  </form></div></div>`;
+}
+INP.lemail=t=>{S.login.email=t.value;upd('det')};
+ACT.showpw=t=>{const p=$('#lpw');p.type=p.type==='password'?'text':'password';t.textContent=p.type==='password'?'Show':'Hide'};
+ACT.fill=t=>{S.login.email=DEMOS[t.dataset.v];$('#lem').value=S.login.email;$('#lpw').value='pulse@2026';upd('det');$('#lerr').textContent=''};
+ACT.tofp=()=>{S.fp={step:1,email:S.login.email};S.view='forgot';render()};
+function findUser(email){
+  const e=email.trim().toLowerCase();
+  if(e===ME_ADMIN.email)return{role:'admin',name:ME_ADMIN.name,title:ME_ADMIN.title,email:e};
+  const f=FACULTY.find(x=>x.email===e);if(f)return{role:'faculty',name:f.name,title:f.desig+', '+f.dept,email:e,dept:f.dept,fac:f};
+  const s=STUDENTS.find(x=>x.email===e);if(s)return{role:'student',name:s.name,title:`${s.dept} · Sem ${s.sem}`,email:e,dept:s.dept,stu:s};
+  return null;
+}
+FORM.login=f=>{
+  const em=$('#lem').value.trim(),pw=$('#lpw').value;S.login.email=em;
+  let err='';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))err='Enter a valid email address.';
+  else if(em.toLowerCase().split('@')[1]!==COLLEGE.domain)err='This email domain is not registered with PulseIQ.';
+  else if(pw.length<6)err='Password must be at least 6 characters.';
+  else if(!findUser(em))err='No account found for this email. Ask your college admin to create one.';
+  if(err){S.login.err=err;$('#lerr').textContent=err;return}
+  S.login.err='';S.user=findUser(em);S.role=S.user.role;S.view='college';render();
+};
+
+/* ===== C06 forgot / reset ===== */
+function pwRules(p){return[['8 or more characters',p.length>=8],['An uppercase letter',/[A-Z]/.test(p)],['A number',/\d/.test(p)],['A symbol',/[^A-Za-z0-9]/.test(p)]]}
+R.pwr=()=>{const p=($('#np')||{}).value||'';return pwRules(p).map(([t,ok])=>`<div class="row" style="gap:8px;color:var(${ok?'--good':'--muted'})">${ic(ok?'check':'dot',14)}<span>${t}</span></div>`).join('')};
+function forgotView(){
+  const st=S.fp.step;
+  let body='';
+  if(st===1)body=`<form class="stack" data-form="fp1" novalidate><div class="fld"><label for="fpe">Institutional email</label><input class="inp" id="fpe" type="email" value="${esc(S.fp.email||'')}" placeholder="name@${COLLEGE.domain}"></div><div class="err" id="fperr"></div><button class="btn primary" style="justify-content:center">Send reset link</button></form>`;
+  if(st===2)body=`<div class="stack"><div class="callout">A reset link was sent to <b>${esc(S.fp.email)}</b>. It expires in 30 minutes.</div><p class="hint">In this prototype no email is sent. Use the button to open the link.</p><button class="btn primary" data-act="fp2" style="justify-content:center">Open reset link</button></div>`;
+  if(st===3)body=`<form class="stack" data-form="fp3" novalidate><div class="fld"><label for="np">New password</label><input class="inp" id="np" type="password" data-in="np" autocomplete="new-password"></div><div class="fld"><label for="np2">Confirm password</label><input class="inp" id="np2" type="password" autocomplete="new-password"></div><div id="pwr" style="font-size:13px;display:flex;flex-direction:column;gap:4px">${R.pwr()}</div><div class="err" id="fperr"></div><button class="btn primary" style="justify-content:center">Save password</button></form>`;
+  if(st===4)body=`<div class="stack"><div class="callout">Your password has been updated. You can sign in now.</div><button class="btn primary" data-act="tologin" style="justify-content:center">Back to sign in</button></div>`;
+  return`<div class="welc"><div class="card auth-card" style="padding:26px"><div class="brand" style="color:var(--ink);padding:0">${MARK(28)}PulseIQ</div><div><h1 style="font-size:24px">Reset your password</h1><p class="muted" style="margin-top:4px">Step ${st} of 4</p></div>${body}${st<4?`<button class="btn ghost sm" style="align-self:flex-start" data-act="tologin">Cancel</button>`:''}</div></div>`;
+}
+INP.np=()=>upd('pwr');
+FORM.fp1=()=>{const e=$('#fpe').value.trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)||e.split('@')[1].toLowerCase()!==COLLEGE.domain){$('#fperr').textContent='Enter your registered institutional email.';return}S.fp={step:2,email:e};render()};
+ACT.fp2=()=>{S.fp.step=3;render()};
+FORM.fp3=()=>{const p=$('#np').value,p2=$('#np2').value;if(!pwRules(p).every(x=>x[1])){$('#fperr').textContent='Password does not meet all the rules above.';return}if(p!==p2){$('#fperr').textContent='Passwords do not match.';return}S.fp.step=4;render()};
+
+/* ===== C04 welcome, C05 redirect ===== */
+function collegeView(){
+  const u=S.user;
+  return`<div class="welc"><div class="card stack" style="width:min(520px,100%);padding:30px;gap:18px;box-shadow:var(--shadow)">
+   <div class="row" style="flex-wrap:nowrap;gap:16px"><div class="logo">${COLLEGE.mark}</div><div><div class="lbl">Welcome to</div><h1 style="font-size:24px">${COLLEGE.name}</h1><p class="muted">${COLLEGE.affil}</p></div></div>
+   <div class="grid g3" style="gap:10px">${[[STUDENTS.length,'Students'],[FACULTY.length,'Faculty'],[DEPTS.length,'Departments']].map(([n,l])=>`<div style="background:var(--surface2);border-radius:10px;padding:10px 12px"><b class="mono" style="font-size:20px">${n}</b><div class="muted" style="font-size:12px">${l}</div></div>`).join('')}</div>
+   <div class="row" style="flex-wrap:nowrap"><div class="av">${ini(u.name)}</div><div><b>${esc(u.name)}</b><div class="muted">${esc(u.title)}</div></div><span class="pill acc" style="margin-left:auto">${ROLE_LABEL[u.role]}</span></div>
+   <button class="btn primary" style="justify-content:center;padding:11px" data-act="enter">Continue to ${ROLE_LABEL[u.role]} portal</button>
+   <button class="btn ghost sm" style="align-self:center" data-act="logout">Not you? Sign out</button></div></div>`;
+}
+ACT.enter=()=>{S.view='redirect';render()};
+function redirectView(){return`<div class="welc"><div class="stack" style="align-items:center;gap:14px;text-align:center">${MARK(44)}<h2 style="font-size:22px">Opening the ${ROLE_LABEL[S.role]} portal</h2><p class="muted">Checking permissions for ${esc(S.user.email)}</p><div class="prog" style="width:240px"><b style="width:100%;transition:width 1.4s"></b></div></div></div>`}
+ACT.logout=()=>{closeDrawer();closeModal();S.user=null;S.role=null;S.route=null;S.view='login';S.login={email:'',err:''};render()};
+
+/* ===== app shell ===== */
+function unread(){return(S.notifs[S.role]||[]).filter((_,i)=>!S.reads[S.role+i]).length}
+function appShell(){
+  const u=S.user,nav=NAV[S.role];
+  const side=nav.map(g=>`<div class="ng">${g.t}</div>${g.i.map(([id,l,i])=>`<button class="nl ${S.route===id?'on':''}" data-act="go" data-v="${id}">${ic(i,17)}<span>${l}</span><span class="cd">${id}</span></button>`).join('')}`).join('');
+  const un=unread();
+  return`<div class="app ${S.navOpen?'nav-open':''}"><div class="navscrim" data-act="navtoggle"></div>
+   <aside class="side"><div class="brand">${MARK(28)}PulseIQ</div>
+    <div class="rolechip"><b>${COLLEGE.name}</b>${ROLE_LABEL[S.role]} portal</div>${side}
+    <div class="side-foot"><button class="nl ${S.route==='C07'?'on':''}" data-act="go" data-v="C07">${ic('bell',17)}<span>Notifications</span><span class="cd">C07</span></button><button class="nl ${S.route==='C08'?'on':''}" data-act="go" data-v="C08">${ic('gear',17)}<span>Account & security</span><span class="cd">C08</span></button><button class="nl" data-act="logout">${ic('logout',17)}<span>Sign out</span></button></div></aside>
+   <div class="main"><header class="top"><button class="iconbtn menubtn" data-act="navtoggle" aria-label="Menu">${ic('menu')}</button><div class="ttl">${esc(titleOf(S.route))}</div>
+    ${S.role!=='student'?`<div class="gsw">${ic('search',16)}<input class="inp" id="gs" data-in="gs" placeholder="Find a student by name or roll number" autocomplete="off"><div id="gsr"></div></div>`:'<div style="flex:1"></div>'}
+    ${themeBtn()}<button class="iconbtn" data-act="go" data-v="C07" aria-label="Notifications">${ic('bell')}${un?`<span class="badge-dot">${un}</span>`:''}</button><div class="av" title="${esc(u.name)}">${ini(u.name)}</div></header>
+    <main class="page" id="view">${(VIEWS[S.route]||(()=>`<div class="empty">Screen ${S.route} is not available.</div>`))()}</main></div></div>`;
+}
+ACT.navtoggle=()=>{S.navOpen=!S.navOpen;const a=$('.app');if(a)a.classList.toggle('nav-open',S.navOpen)};
+function go(id,keep){S.route=id;S.navOpen=false;if(!keep)S.f={dept:'All',sem:'All',risk:'All',seg:'All',q:'',sort:'risk',dir:-1,page:0};closeDrawer();render();window.scrollTo(0,0)}
+ACT.go=t=>go(t.dataset.v);
+INP.gs=t=>{
+  const q=t.value.trim().toLowerCase(),box=$('#gsr');
+  if(!q){box.innerHTML='';return}
+  const pool=scope();
+  const res=pool.filter(s=>s.name.toLowerCase().includes(q)||s.id.toLowerCase().includes(q)).slice(0,6);
+  box.innerHTML=`<div class="gsr">${res.length?res.map(s=>`<button data-act="gopen" data-v="${s.id}"><span><b>${esc(s.name)}</b> <span class="muted mono">${s.id}</span></span>${riskPill(s.risk.acad)}</button>`).join(''):'<div class="empty" style="padding:14px">No student found</div>'}</div>`;
+};
+ACT.gopen=t=>{$('#gsr').innerHTML='';$('#gs').value='';openStudent(t.dataset.v)};
+document.addEventListener('click',e=>{if(!e.target.closest('.gsw')){const b=$('#gsr');if(b)b.innerHTML=''}});
+/* students the signed-in person may see: admin = all, faculty = own classes */
+const myClasses=()=>S.user&&S.user.dept?[`${S.user.dept}-Y3-A`,`${S.user.dept}-Y3-B`]:FAC_CLASSES;
+function scope(){return S.role==='faculty'?STUDENTS.filter(s=>myClasses().includes(s.cls)):S.role==='admin'?STUDENTS:[S.user.stu]}
+function facSubjects(){const d=S.user.dept||'CSE',p=POOL[d][5].split(', ');return[{name:p[0],code:d+'501',cls:myClasses()},{name:p[5],code:d+'506',cls:[myClasses()[0]]}]}
+
+/* ===== C07 notifications, C08 settings ===== */
+VIEWS.C07=()=>{
+  const n=S.notifs[S.role];
+  return ph('C07','Notifications','Academic updates, alerts and announcements you are authorised to see.',`<button class="btn" data-act="readall">Mark all as read</button>`)+
+  `<div class="card"><div class="list">${n.map((x,i)=>{const rd=S.reads[S.role+i];return`<div class="li" style="${rd?'opacity:.62':''}"><span class="pill ${i===0?'high':'acc'} plain" style="padding:6px">${ic(x[0],16)}</span><div class="grow"><b>${esc(x[1])}</b><div class="muted" style="font-size:12.5px">${x[2]} · ${x[3]}</div></div>${rd?'':`<button class="btn sm" data-act="readone" data-v="${i}">Mark read</button>`}</div>`}).join('')}</div></div>`;
+};
+ACT.readall=()=>{S.notifs[S.role].forEach((_,i)=>S.reads[S.role+i]=1);render()};
+ACT.readone=t=>{S.reads[S.role+t.dataset.v]=1;render()};
+VIEWS.C08=()=>ph('C08','Account & Security','Update your password, choose how PulseIQ contacts you, and sign out.')+
+ `<div class="grid g2"><form class="card stack" data-form="chpw" novalidate>${cardH('Change password')}<div class="fld"><label for="cp0">Current password</label><input class="inp" id="cp0" type="password"></div><div class="fld"><label for="np">New password</label><input class="inp" id="np" type="password" data-in="np"></div><div id="pwr" style="font-size:13px;display:flex;flex-direction:column;gap:4px">${R.pwr()}</div><div class="err" id="fperr"></div><button class="btn primary" style="align-self:flex-start">Update password</button></form>
+ <div class="card stack">${cardH('Preferences')}${[['Email me when a student crosses into High risk',1],['Weekly summary every Monday',1],['Show attendance warnings below the college threshold',1],['Product tips',0]].map(([t,on],i)=>`<label class="chk"><input type="checkbox" ${on?'checked':''} data-in="pref"><span>${t}</span></label>`).join('')}
+ <div class="callout">Signed in as <b>${esc(S.user.email)}</b></div><button class="btn danger" style="align-self:flex-start" data-act="logout">${ic('logout',16)} Sign out</button></div></div>`;
+FORM.chpw=()=>{const p=$('#np').value;if(!$('#cp0').value){$('#fperr').textContent='Enter your current password.';return}if(!pwRules(p).every(x=>x[1])){$('#fperr').textContent='New password does not meet the rules.';return}$('#fperr').textContent='';toast('Password updated')};
+INP.pref=()=>toast('Preference saved');
+/* ===== shared at-risk table (A12, F04, F10) ===== */
+const SORTS={risk:s=>Math.max(s.acad,s.plcR),score:s=>s.score,name:s=>s.name,att:s=>s.att,cgpa:s=>s.cgpa};
+function filt(pool){
+  const f=S.f;
+  return pool.filter(s=>(f.dept==='All'||s.dept===f.dept)&&(f.sem==='All'||String(s.sem)===f.sem)&&(f.seg==='All'||s.seg===f.seg)&&
+   (f.risk==='All'||(f.risk==='acad'&&s.risk.acad==='High')||(f.risk==='plc'&&s.risk.plc==='High')||(f.risk==='both'&&s.risk.acad==='High'&&s.risk.plc==='High')||(f.risk==='any'&&(s.risk.acad==='High'||s.risk.plc==='High')))&&
+   (!f.q||(s.name+' '+s.id).toLowerCase().includes(f.q.toLowerCase())));
+}
+function topDriver(s){const d=[...riskDrivers(s,'acad'),...riskDrivers(s,'plc')].sort((a,b)=>b.c-a.c)[0];return d&&d.c>1?`${d.label}`:'None'}
+R.tbl=()=>{
+  const k=SORTS[S.f.sort]||SORTS.risk,rows=filt(S.pool()).sort((a,b)=>{const x=k(a),y=k(b);return(x>y?1:x<y?-1:0)*S.f.dir});
+  const page=rows.slice(S.f.page*PAGE,(S.f.page+1)*PAGE);
+  const cols=[{h:'Student',srt:'name'},'Class',{h:'Success score',srt:'score'},{h:'Academic risk',srt:'risk'},'Placement','Segment','Main driver','4-wk'];
+  return`<div class="row spread" style="margin-bottom:10px"><span class="muted" id="rc"><b>${rows.length}</b> students match</span><button class="btn sm" data-act="copycsv">Copy list as CSV</button></div>`+
+  tbl(cols,page.map(s=>`<tr class="clk" data-act="open" data-v="${s.id}"><td><b>${esc(s.name)}</b><div class="sub mono">${s.id}</div></td><td>${s.cls}</td><td style="min-width:130px">${scBar(s.score)}</td><td>${riskPill(s.risk.acad)}</td><td>${riskPill(s.risk.plc)}</td><td>${segPill(s.seg)}</td><td>${esc(topDriver(s))}</td><td class="mono ${s.delta>=0?'up':'dn'}">${s.delta>0?'+':''}${s.delta}</td></tr>`),{empty:'No students match these filters.'})+pager(rows.length,'tbl');
+};
+ACT.copycsv=()=>{const rows=filt(S.pool());copyText(csv(['Roll','Name','Class','Score','Academic risk','Placement risk','Segment'],rows.map(s=>[s.id,s.name,s.cls,s.score,s.risk.acad,s.risk.plc,SEGMAP[s.seg].label])),`Copied ${rows.length} rows`)};
+function riskToolbar(depts=true){
+  const f=S.f;
+  return`<div class="card flat"><div class="toolbar"><div class="fld grow"><label for="fq">Search</label><input class="inp" id="fq" data-in="fq" placeholder="Name or roll number" value="${esc(f.q)}"></div>
+  ${depts?`<div class="fld"><label for="fd">Department</label><select class="sel" id="fd" data-in="ff" data-k="dept">${['All',...DEPTS.map(d=>d.code)].map(x=>`<option ${f.dept===x?'selected':''}>${x}</option>`).join('')}</select></div>`:''}
+  <div class="fld"><label for="fs">Semester</label><select class="sel" id="fs" data-in="ff" data-k="sem">${['All','3','5','7'].map(x=>`<option ${f.sem===x?'selected':''}>${x}</option>`).join('')}</select></div>
+  <div class="fld"><label for="fg">Segment</label><select class="sel" id="fg" data-in="ff" data-k="seg"><option value="All">All segments</option>${SEGS.map(g=>`<option value="${g.k}" ${f.seg===g.k?'selected':''}>${g.label}</option>`).join('')}</select></div></div>
+  <div class="chips" style="margin-top:12px" id="chips">${riskChips()}</div></div>`;
+}
+const riskChips=()=>[['All','All students'],['any','Any high risk'],['acad','High academic risk'],['plc','High placement risk'],['both','Both']].map(([k,l])=>`<button class="chip ${S.f.risk===k?'on':''}" data-act="rk" data-v="${k}">${l}</button>`).join('');
+R.chips=riskChips;
+INP.fq=t=>{S.f.q=t.value;S.f.page=0;upd('tbl')};
+INP.ff=t=>{S.f[t.dataset.k]=t.value;S.f.page=0;upd('tbl')};
+ACT.rk=t=>{S.f.risk=t.dataset.v;S.f.page=0;upd('chips');upd('tbl')};
+
+/* ===== A01 dashboard ===== */
+function corr(x,y){const mx=mean(x),my=mean(y);let n=0,a=0,b=0;x.forEach((v,i)=>{n+=(v-mx)*(y[i]-my);a+=(v-mx)**2;b+=(y[i]-my)**2});return n/Math.sqrt(a*b||1)}
+function insights(){
+  const low=STUDENTS.filter(s=>s.att<S.R.att),lowHi=low.filter(s=>s.risk.acad==='High').length;
+  const gap=STUDENTS.filter(s=>s.seg==='gap'),gapC=mean(gap.map(s=>s.plc.code));
+  const rate=DEPTS.map(d=>{const p=STUDENTS.filter(s=>s.dept===d.code);return{d:d.code,r:p.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length/p.length}}).sort((a,b)=>b.r-a.r)[0];
+  const r=corr(STUDENTS.map(s=>s.p.lms),STUDENTS.map(s=>s.cgpa));
+  const dn=STUDENTS.filter(s=>s.delta<=-3).length;
+  return[
+   {k:'bad',t:`${low.length} students (${pc(low.length/STUDENTS.length*100)}) are below the ${S.R.att}% attendance rule. ${pc(lowHi/low.length*100)} of them already carry a High academic risk flag.`},
+   {k:'warn',t:`${gap.length} students have strong academics but weak placement readiness. Their average coding score is ${r0(gapC)}, against ${r0(mean(STUDENTS.map(s=>s.plc.code)))} for the college.`},
+   {k:'warn',t:`${rate.d} has the highest share of students with a High risk flag (${pc(rate.r*100)}). Start department reviews there.`},
+   {k:'',t:`LMS activity tracks CGPA closely (r = ${r.toFixed(2)}). Falling LMS logins are an early warning that shows up weeks before marks do.`},
+   {k:'bad',t:`${dn} students lost 3 or more score points in the last 4 weeks.`}];
+}
+VIEWS.A01=()=>{
+  const N=STUDENTS.length,hi=STUDENTS.filter(s=>s.risk.acad==='High'||s.risk.plc==='High'),pass=STUDENTS.filter(s=>s.backlogs===0).length,wk=weekly();
+  const top=[...STUDENTS].sort((a,b)=>Math.max(b.acad,b.plcR)-Math.max(a.acad,a.plcR)).slice(0,6);
+  const byDept=DEPTS.map(d=>{const p=STUDENTS.filter(s=>s.dept===d.code);return{d:d.code,p,hi:p.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length,med:p.filter(s=>!(s.risk.acad==='High'||s.risk.plc==='High')&&(s.risk.acad==='Medium'||s.risk.plc==='Medium')).length}});
+  const segC=SEGS.map(g=>({g,n:STUDENTS.filter(s=>s.seg===g.k).length}));
+  return ph('A01',`Good evening, ${S.user.name.split(' ')[1]}`,`${TERM} · Week 8. Data last synced 18 minutes ago from 7 sources.`,`<button class="btn" data-act="go" data-v="A16">${ic('refresh',16)} Sync status</button><button class="btn primary" data-act="go" data-v="A12">${ic('alert',16)} Review at-risk students</button>`)+
+  `<div class="grid g6">${kpi('Students',N,STUDENTS.filter(s=>s.active).length+' active')}${kpi('Faculty',FACULTY.length,'across '+DEPTS.length+' departments')}${kpi('Departments',DEPTS.length,'3 batches each')}${kpi('Avg attendance',pc(MEAN.att),`${STUDENTS.filter(s=>s.att<S.R.att).length} below ${S.R.att}%`)}${kpi('Pass percentage',pc(pass/N*100),'no active backlogs')}${kpi('Avg success score',f1(MEAN.score),`<span class="${wk.sc[7]>=wk.sc[3]?'up':'dn'}">${wk.sc[7]>=wk.sc[3]?'▲':'▼'} ${f1(Math.abs(wk.sc[7]-wk.sc[3]))} in 4 weeks</span>`)}</div>
+  <div class="grid g-main"><div class="card">${cardH(`${hi.length} students need intervention`,'Highest combined risk. Select a row to see why.',`<button class="btn sm" data-act="rkgo" data-v="any">View all ${hi.length}</button>`)}
+   ${tbl(['Student','Score','Academic','Placement','Main driver'],top.map(s=>`<tr class="clk" data-act="open" data-v="${s.id}"><td><b>${esc(s.name)}</b><div class="sub">${s.cls}</div></td><td class="mono">${f1(s.score)}</td><td>${riskPill(s.risk.acad)}</td><td>${riskPill(s.risk.plc)}</td><td>${esc(topDriver(s))}</td></tr>`))}</div>
+   <div class="card">${cardH('AI risk summary','Generated from the combined data.')}<div class="stack" style="gap:10px">${insights().map(i=>`<div class="callout ${i.k}">${esc(i.t)}</div>`).join('')}</div></div></div>
+  <div class="grid g3"><div class="card">${cardH('Success score distribution','Students per 10-point band.')}${hist(STUDENTS.map(s=>s.score))}</div>
+   <div class="card">${cardH('Risk by department','Share of students with any High flag or Medium flag.')}<div class="stack" style="gap:12px">${byDept.map(x=>`<div><div class="row spread" style="font-size:13px;margin-bottom:4px"><b>${x.d}</b><span class="mono muted">${x.hi} high · ${x.med} medium · ${x.p.length-x.hi-x.med} low</span></div>${stacked([{label:'High',v:x.hi,color:'--bad'},{label:'Medium',v:x.med,color:'--warn'},{label:'Low',v:x.p.length-x.hi-x.med,color:'--good'}])}</div>`).join('')}</div></div>
+   <div class="card">${cardH('Student segments','Select a segment to see its students.')}${hbars(segC.map(({g,n})=>({label:g.label,v:n,color:g.color,act:'sego',key:g.k})),{max:Math.max(...segC.map(x=>x.n))})}</div></div>
+  <div class="grid g2"><div class="card">${cardH('Average attendance by week','Percent across all students.')}${lineChart([{v:wk.att,color:'--c1'}],WEEKS,{unit:'%'})}</div><div class="card">${cardH('Students with High academic risk','Count by week. Rising since week 4.')}${lineChart([{v:wk.hi,color:'--bad'}],WEEKS)}</div></div>`;
+};
+ACT.rkgo=t=>{S.route='A12';S.f={dept:'All',sem:'All',risk:t.dataset.v,seg:'All',q:'',sort:'risk',dir:-1,page:0};render();scrollTo(0,0)};
+ACT.sego=t=>{S.route='A12';S.f={dept:'All',sem:'All',risk:'All',seg:t.dataset.v,q:'',sort:'risk',dir:-1,page:0};render();scrollTo(0,0)};
+
+/* ===== A12 at-risk monitoring ===== */
+VIEWS.A12=()=>{S.pool=()=>STUDENTS;return ph('A12','At-Risk Student Monitoring','Students who need academic or placement support. Select any row for the explanation behind the flags.')+riskToolbar()+`<div id="tbl">${R.tbl()}</div>`};
+
+/* ===== A11 AI analytics ===== */
+const NOTE=()=>`STUDENT SUCCESS SCORE: a note\n\nIndicators (each scaled 0-100): ${PILLARS.map(p=>`${p.label} (${p.desc}, weight ${r0(S.W[p.k]/Object.values(S.W).reduce((a,b)=>a+b,0)*100)}%)`).join('; ')}.\n\nScore = weighted average of the seven indicator groups. Academic risk = 100 - (0.45 Academics + 0.30 Attendance + 0.15 LMS + 0.10 Feedback) + 4 per backlog (max 3). Placement risk = 100 - (0.65 Placement + 0.25 Skills + 0.10 Engagement). Flags use College thresholds (High ${S.R.acHi}/${S.R.plHi}, Medium ${S.R.acMed}/${S.R.plMed}).\n\nExplainability: each driver = weight x (student indicator - college average), so contributions sum to the gap from the average score.\n\nSegments: Critical support, Academic strong with placement gap, Placement-ready with academics slipping, Disengaged, Star performers, Steady core.\n\nCleaning: nulls imputed with department or class medians, duplicate IDs merged on latest record, out-of-range marks capped, every fix logged.`;
+R.modelOut=()=>{
+  const any=STUDENTS.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length;
+  return`<div class="grid g3" style="margin-bottom:10px">${kpi('Average score',f1(MEAN.score))}${kpi('Std deviation',f1(Math.sqrt(mean(STUDENTS.map(s=>(s.score-MEAN.score)**2)))))}${kpi('Top 20% cutoff',f1(SC_STAR),'Star performer line')}</div>${hist(STUDENTS.map(s=>s.score))}`;
+};
+function wlabels(){const tw=Object.values(S.W).reduce((a,b)=>a+b,0)||1;PILLARS.forEach(p=>{const e=$('#wl-'+p.k);if(e)e.textContent=r0(S.W[p.k]/tw*100)+'%'})}
+INP.w=t=>{S.W[t.dataset.k]=+t.value;recompute(S.W,S.R);wlabels();upd('modelOut');upd('segcards')};
+ACT.wreset=()=>{S.W={...S0.W};recompute(S.W,S.R);render()};
+R.segcards=()=>SEGS.map(g=>{const p=STUDENTS.filter(s=>s.seg===g.k);return`<div class="card flat stack" style="gap:8px"><div class="seg"><i style="background:var(${g.color})"></i><div><b>${g.label}</b><div class="mono muted" style="font-size:12px">${p.length} students · avg score ${p.length?f1(mean(p.map(s=>s.score))):'–'}</div></div></div><p class="muted" style="font-size:13px">${g.desc}</p><p style="font-size:13px"><b>Action:</b> ${g.action}</p><button class="btn sm" style="align-self:flex-start" data-act="sego" data-v="${g.k}">View students</button></div>`}).join('');
+VIEWS.A11=()=>{
+  const hiS=STUDENTS.filter(s=>s.risk.acad==='High'||s.risk.plc==='High'),rest=STUDENTS.filter(s=>!(s.risk.acad==='High'||s.risk.plc==='High'));
+  const sep=PILLARS.map(p=>({p,a:mean(hiS.map(s=>s.p[p.k])),b:mean(rest.map(s=>s.p[p.k]))})).sort((x,y)=>(y.b-y.a)-(x.b-x.a));
+  const pts=STUDENTS.map(s=>({id:s.id,x:s.att,y:s.cgpa,c:s.risk.acad==='High'?'--bad':s.risk.acad==='Medium'?'--warn':'--c1',t:`${s.name}: attendance ${s.att}%, CGPA ${s.cgpa}`}));
+  const tw=Object.values(S.W).reduce((a,b)=>a+b,0)||1;
+  return ph('A11','AI Analytics','College-wide drivers, segments and a score model you can tune. All charts update live.',`<button class="btn" data-act="method">How scoring works</button><button class="btn" data-act="copynote">Copy score note</button>`)+
+  `<div class="grid g-main"><div class="card">${cardH('Score model studio','Change the weights and watch every score, flag and segment recalculate.',`<button class="btn sm" data-act="wreset">Reset to default</button>`)}
+    <div class="grid g2" style="gap:6px 24px">${PILLARS.map(p=>`<div class="fld" style="gap:2px"><div class="row spread"><label for="w-${p.k}" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)">${p.label}</label><b class="mono" id="wl-${p.k}">${r0(S.W[p.k]/tw*100)}%</b></div><input type="range" id="w-${p.k}" min="0" max="40" step="1" value="${r0(S.W[p.k]*100)}" data-in="wr" data-k="${p.k}"><span class="hint">${p.desc}</span></div>`).join('')}</div></div>
+   <div class="card" id="modelOut">${R.modelOut()}</div></div>
+  <div class="grid g2"><div class="card">${cardH('What separates at-risk students','Average indicator score: students with a High flag against everyone else.')}${sep.map(x=>`<div class="hb" style="grid-template-columns:minmax(90px,140px) minmax(0,1fr) 70px"><span>${x.p.label}</span><div><div class="tr" style="margin-bottom:3px"><div class="fl" style="width:${x.b}%;background:var(--c5)"></div></div><div class="tr"><div class="fl" style="width:${x.a}%;background:var(--bad)"></div></div></div><b class="mono dn">−${r0(x.b-x.a)} pts</b></div>`).join('')}<div class="legend" style="margin-top:8px"><span><i style="background:var(--c5)"></i>Not flagged</span><span><i style="background:var(--bad)"></i>High risk</span></div></div>
+   <div class="card">${cardH('Attendance against CGPA','Each dot is a student. Select a dot to open the student.')}${scatter(pts,{xl:'Overall attendance %',yl:'CGPA',xmin:30,xmax:100,ymin:4,ymax:10,vline:S.R.att})}<div class="legend"><span><i style="background:var(--bad)"></i>High academic risk</span><span><i style="background:var(--warn)"></i>Medium</span><span><i style="background:var(--c1)"></i>Low</span></div></div></div>
+  <div class="card">${cardH('Student segments','Groups that call for different interventions.')}<div class="grid g3" id="segcards">${R.segcards()}</div></div>
+  <div class="card">${cardH('Indicator strength by department','Average indicator score. Green cells are strengths, red cells are gaps.')}<div class="tw"><table class="heat"><thead><tr><th>Department</th>${PILLARS.map(p=>`<th style="text-align:center">${p.short}</th>`).join('')}<th style="text-align:center">Score</th></tr></thead><tbody>${DEPTS.map(d=>{const p=STUDENTS.filter(s=>s.dept===d.code);return`<tr><td><b>${d.code}</b></td>${[...PILLARS.map(x=>mean(p.map(s=>s.p[x.k]))),mean(p.map(s=>s.score))].map(v=>{const t=cl((v-50)/30*100,0,100);return`<td style="background:color-mix(in srgb,var(--good-soft) ${t}%,var(--bad-soft))">${r0(v)}</td>`}).join('')}</tr>`}).join('')}</tbody></table></div></div>`;
+};
+INP.wr=t=>{S.W[t.dataset.k]=+t.value/100;recompute(S.W,S.R);wlabels();upd('modelOut');upd('segcards')};
+ACT.copynote=()=>copyText(NOTE(),'Score note copied');
+
+/* ===== A13 interventions ===== */
+const IV_COLS=['Planned','In progress','Completed'];
+VIEWS.A13=()=>{
+  const iv=S.interventions,done=iv.filter(i=>i.status==='Completed'),act=iv.filter(i=>i.status!=='Completed');
+  return ph('A13','Intervention Management','Mentor assignments, support plans and what they achieved.',`<button class="btn primary" data-act="newiv">${ic('plus',16)} New plan</button>`)+
+  `<div class="grid g4">${kpi('Active plans',act.length,iv.filter(i=>i.status==='Planned').length+' not started')}${kpi('Completed',done.length,'this term')}${kpi('Avg score gain',done.length?'+'+f1(mean(done.map(i=>i.gain))):'–','completed plans')}${kpi('High-risk uncovered',STUDENTS.filter(s=>(s.risk.acad==='High'||s.risk.plc==='High')&&!iv.some(i=>i.sid===s.id)).length,'no plan yet','dn')}</div>
+  <div class="grid g3" id="kan">${R.kan()}</div>`;
+};
+R.kan=()=>IV_COLS.map(c=>{const l=S.interventions.filter(i=>i.status===c);return`<div class="card flat stack" style="gap:10px;background:var(--surface2)"><div class="row spread"><b>${c}</b><span class="pill plain">${l.length}</span></div>${l.map(i=>{const s=byId(i.sid);return`<div class="card stack" style="gap:6px;padding:12px"><div class="row spread"><b style="cursor:pointer" data-act="open" data-v="${s.id}">${esc(s.name)}</b><span class="tag">${i.id}</span></div><div style="font-size:13px">${esc(i.type)}</div><div class="muted" style="font-size:12.5px">${esc(i.mentor)} · due ${i.due}</div>${i.gain?`<div class="up mono" style="font-size:12.5px">+${i.gain} score points</div>`:''}${c!=='Completed'?`<button class="btn sm" style="align-self:flex-start" data-act="adv" data-v="${i.id}">${c==='Planned'?'Start plan':'Mark complete'}</button>`:''}</div>`}).join('')||'<p class="muted">Nothing here.</p>'}</div>`}).join('');
+ACT.adv=t=>{const i=S.interventions.find(x=>x.id===t.dataset.v);if(i.status==='Planned')i.status='In progress';else{i.status='Completed';i.gain=r1(2+rnd()*5)}upd('kan');toast('Plan updated')};
+ACT.mkiv=t=>{const s=byId(t.dataset.v),a=actionsFor(s)[0];S.interventions.unshift({id:'INT-'+(300+S.interventions.length),sid:s.id,type:a?a.text.split(' and ')[0]:'Mentor check-in',mentor:s.mentor,status:'Planned',created:'Oct 10',due:'Oct 31',note:'',scoreAt:s.score,gain:null});toast('Intervention plan created for '+s.name);openStudent(s.id);if(S.route==='A13'||S.route==='F12')render()};
+ACT.newiv=()=>{
+  const cand=[...STUDENTS].filter(s=>(s.risk.acad==='High'||s.risk.plc==='High')&&!S.interventions.some(i=>i.sid===s.id)).sort((a,b)=>Math.max(b.acad,b.plcR)-Math.max(a.acad,a.plcR)).slice(0,30);
+  modal(`<form class="stack" data-form="newiv" novalidate><div class="row spread"><h2 style="font-size:20px">New intervention plan</h2><button type="button" class="iconbtn" data-act="mclose" aria-label="Close">${ic('x')}</button></div>
+  <div class="fld"><label for="ni-s">Student (highest risk without a plan)</label><select class="sel" id="ni-s">${cand.map(s=>`<option value="${s.id}">${esc(s.name)} · ${s.id} · ${s.cls}</option>`).join('')}</select></div>
+  <div class="fld"><label for="ni-t">Plan type</label><select class="sel" id="ni-t">${['Attendance recovery','Remedial classes','Placement prep track','Mentor counselling','Backlog clearing plan','Coding bootcamp','Parent meeting'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+  <div class="fld"><label for="ni-m">Mentor</label><select class="sel" id="ni-m">${mentors.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>
+  <div class="fld"><label for="ni-n">Notes</label><textarea class="txt" id="ni-n" placeholder="Goals, meeting schedule, success measure"></textarea></div>
+  <div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="mclose">Cancel</button><button class="btn primary">Create plan</button></div></form>`);
+};
+FORM.newiv=()=>{const s=byId($('#ni-s').value);S.interventions.unshift({id:'INT-'+(300+S.interventions.length),sid:s.id,type:$('#ni-t').value,mentor:$('#ni-m').value,status:'Planned',created:'Oct 10',due:'Oct 31',note:$('#ni-n').value,scoreAt:s.score,gain:null});closeModal();toast('Plan created');render()};
+
+/* ===== A14 connections, A15 mapping, A16 sync, A24 quality ===== */
+const SOURCES=[
+ {k:'Academic',sys:'Student ERP',db:'PostgreSQL 15',host:'erp.meridian.edu.in:5432',tbl:'stu_academic',rec:STUDENTS.length*6,last:'18 min ago',st:'ok',ms:42},
+ {k:'Attendance',sys:'Biometric attendance',db:'REST API',host:'bio.meridian.edu.in/api/v2',tbl:'att_daily',rec:48210,last:'18 min ago',st:'ok',ms:118},
+ {k:'LMS',sys:'Moodle LMS',db:'REST API',host:'lms.meridian.edu.in/webservice',tbl:'user_lastaccess',rec:STUDENTS.length*8,last:'18 min ago',st:'ok',ms:204},
+ {k:'Engagement',sys:'Student Activity Cell',db:'Spreadsheet export',host:'activity-cell/events.xlsx',tbl:'events_participation',rec:1930,last:'1 day ago',st:'warn',ms:0},
+ {k:'Placement',sys:'Training & Placement portal',db:'MySQL 8',host:'tp.meridian.edu.in:3306',tbl:'tp_assessments',rec:STUDENTS.length*3,last:'18 min ago',st:'ok',ms:67},
+ {k:'Skills',sys:'Skill assessment vendor',db:'CSV over SFTP',host:'sftp.skillvendor.in',tbl:'skills_scores.csv',rec:STUDENTS.length*2,last:'2 days ago',st:'warn',ms:0},
+ {k:'Feedback',sys:'Survey platform',db:'REST API',host:'survey.meridian.edu.in',tbl:'responses',rec:2764,last:'18 min ago',st:'ok',ms:155}];
+VIEWS.A14=()=>ph('A14','Database Connection Manager','Connect the systems that hold student data. Credentials are encrypted on the server and never shown again.',`<button class="btn primary" data-act="addconn">${ic('plus',16)} Add connection</button>`)+
+ `<div class="grid g3">${SOURCES.map(s=>`<div class="card stack" style="gap:10px"><div class="row spread"><div class="row" style="gap:8px">${ic('db',18)}<h3>${s.k}</h3></div><span class="pill ${s.st==='ok'?'good':'warn'}" id="cs-${s.k}">${s.st==='ok'?'Connected':'Stale'}</span></div>
+  <div style="font-size:13px"><b>${s.sys}</b><div class="muted">${s.db}</div></div>
+  <div class="mono muted" style="font-size:12px;overflow-wrap:anywhere">${s.host}<br>${s.tbl}</div>
+  <div class="row spread muted" style="font-size:12.5px"><span>${s.rec.toLocaleString('en-IN')} records</span><span>Synced ${s.last}</span></div>
+  <div class="row"><button class="btn sm" data-act="testc" data-v="${s.k}" id="tb-${s.k}">Test connection</button><button class="btn sm ghost" data-act="editc" data-v="${s.k}">Edit credentials</button></div></div>`).join('')}</div>`;
+ACT.testc=t=>{const k=t.dataset.v,s=SOURCES.find(x=>x.k===k);t.innerHTML='<span class="spin"></span> Testing';t.disabled=true;setTimeout(()=>{t.disabled=false;t.textContent='Test connection';if(s.st==='ok')toast(`${k}: connected in ${s.ms} ms`);else toast(`${k}: reachable, but the latest file is ${s.last} old`,'bad')},900)};
+ACT.editc=t=>{const s=SOURCES.find(x=>x.k===t.dataset.v);modal(`<form class="stack" data-form="savec" novalidate><div class="row spread"><h2 style="font-size:20px">${s.k} connection</h2><button type="button" class="iconbtn" data-act="mclose" aria-label="Close">${ic('x')}</button></div><div class="fld"><label for="c-h">Host or endpoint</label><input class="inp mono" id="c-h" value="${esc(s.host)}"></div><div class="grid g2"><div class="fld"><label for="c-u">Username</label><input class="inp" id="c-u" value="pulseiq_reader" autocomplete="off"></div><div class="fld"><label for="c-p">Password or API key</label><input class="inp" id="c-p" type="password" placeholder="Stored encrypted. Leave blank to keep." autocomplete="new-password"></div></div><div class="callout">Use a read-only account. PulseIQ never writes to your source systems.</div><div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="mclose">Cancel</button><button class="btn primary">Save credentials</button></div></form>`)};
+FORM.savec=()=>{closeModal();toast('Credentials saved securely')};
+ACT.addconn=()=>modal(`<form class="stack" data-form="savec" novalidate><div class="row spread"><h2 style="font-size:20px">Add connection</h2><button type="button" class="iconbtn" data-act="mclose" aria-label="Close">${ic('x')}</button></div><div class="fld"><label for="c-t">Source type</label><select class="sel" id="c-t"><option>PostgreSQL</option><option>MySQL</option><option>SQL Server</option><option>REST API</option><option>CSV or Excel upload</option></select></div><div class="fld"><label for="c-h">Host or endpoint</label><input class="inp mono" id="c-h" placeholder="db.college.edu:5432"></div><div class="grid g2"><div class="fld"><label for="c-u">Username</label><input class="inp" id="c-u" autocomplete="off"></div><div class="fld"><label for="c-p">Password or API key</label><input class="inp" id="c-p" type="password" autocomplete="new-password"></div></div><div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="mclose">Cancel</button><button class="btn primary">Save and test</button></div></form>`);
+
+const FIELDS=['students.roll_number','students.name','classes.section','academic_results.cgpa','academic_results.backlogs','marks.mid1','marks.mid2','attendance.percentage','attendance.session_date','subjects.code','lms.logins_per_week','lms.assignment_completion','engagement.event_type','engagement.points','placement.aptitude','placement.coding','placement.mock_interview','skills.technical','skills.soft','feedback.satisfaction','feedback.faculty_rating','(skip column)'];
+const MAPS={
+ Academic:[['rollno','24CSE009','students.roll_number',99],['cgpa_cur','8.12','academic_results.cgpa',98],['bklg_cnt','1','academic_results.backlogs',96],['mid1_mk','24','marks.mid1',97],['mid2_mk','26','marks.mid2',97],['sec','A','classes.section',92]],
+ Attendance:[['stu_code','24CSE009','students.roll_number',95],['subj_cd','CSE501','subjects.code',97],['pres_pct','82','attendance.percentage',99],['punch_dt','2026-10-08','attendance.session_date',94]],
+ LMS:[['username','24cse009','students.roll_number',84],['logins_7d','11','lms.logins_per_week',99],['asg_done_pct','76','lms.assignment_completion',98],['course_ref','CS-OS-26','subjects.code',71]],
+ Engagement:[['reg_no','24CSE009','students.roll_number',90],['event_name','HackFest','engagement.event_type',82],['pts','10','engagement.points',64]],
+ Placement:[['student_roll','24CSE009','students.roll_number',98],['apt_score','61','placement.aptitude',99],['code_score','48','placement.coding',99],['mock_int','6','placement.mock_interview',93]],
+ Skills:[['id','24CSE009','students.roll_number',88],['tech_pct','67','skills.technical',96],['soft_pct','72','skills.soft',95]],
+ Feedback:[['rno','24CSE009','students.roll_number',91],['sat_rating','4.2','feedback.satisfaction',97],['fac_rating','3.9','feedback.faculty_rating',97]]};
+S.map={src:'Academic',m:JSON.parse(JSON.stringify(MAPS))};
+const PRE={'students.roll_number':s=>s.id,'students.name':s=>s.name,'classes.section':s=>s.sec,'academic_results.cgpa':s=>s.cgpa,'academic_results.backlogs':s=>s.backlogs,'marks.mid1':s=>s.subj[0].mid1,'marks.mid2':s=>s.subj[0].mid2,'attendance.percentage':s=>s.att,'subjects.code':s=>s.subj[0].code,'attendance.session_date':s=>'2026-10-08','lms.logins_per_week':s=>s.lms.logins,'lms.assignment_completion':s=>s.lms.assign,'engagement.points':s=>s.eng.events*6,'engagement.event_type':s=>'Event','placement.aptitude':s=>s.plc.apt,'placement.coding':s=>s.plc.code,'placement.mock_interview':s=>s.plc.mock,'skills.technical':s=>s.skills.tech,'skills.soft':s=>s.skills.soft,'feedback.satisfaction':s=>s.fb.sat,'feedback.faculty_rating':s=>s.fb.fac};
+R.map=()=>{
+  const rows=S.map.m[S.map.src],tgt=[...new Set(rows.map(r=>r[2]))].filter(x=>PRE[x]),sm=STUDENTS.slice(8,11);
+  const need=rows.filter(r=>r[3]<90).length;
+  return`<div class="row spread" style="margin-bottom:10px"><span class="muted"><b>${rows.length-need}</b> mapped · <b class="${need?'dn':''}">${need}</b> need review</span><div class="row"><button class="btn sm" data-act="automap">Auto-map</button><button class="btn sm primary" data-act="validmap">Validate mapping</button></div></div>
+  ${tbl(['Source column','Sample value','PulseIQ field','Match','Status'],rows.map((r,i)=>`<tr><td class="mono">${r[0]}</td><td class="mono">${r[1]}</td><td><select class="sel" style="min-width:210px" data-in="mapsel" data-i="${i}" aria-label="Field for ${r[0]}">${FIELDS.map(f=>`<option ${f===r[2]?'selected':''}>${f}</option>`).join('')}</select></td><td class="mono">${r[3]}%</td><td><span class="pill ${r[3]>=90?'good':'warn'}">${r[3]>=90?'Mapped':'Needs review'}</span></td></tr>`))}
+  <h3 style="margin:18px 0 8px;font-size:15px">Preview after mapping</h3>${tbl(tgt.map(x=>`<span class="mono" style="text-transform:none">${x}</span>`),sm.map(s=>`<tr>${tgt.map(x=>`<td class="mono">${PRE[x](s)}</td>`).join('')}</tr>`))}`;
+};
+INP.mapsel=t=>{const r=S.map.m[S.map.src][+t.dataset.i];r[2]=t.value;r[3]=100;upd('map')};
+ACT.automap=()=>{S.map.m[S.map.src].forEach(r=>{if(r[3]<90)r[3]=91});upd('map');toast('Low-confidence columns accepted as suggested')};
+ACT.validmap=()=>{const r=S.map.m[S.map.src],bad=r.filter(x=>x[3]<90||x[2]==='(skip column)').length;if(bad)toast(`${bad} column${bad>1?'s':''} still need review`,'bad');else toast(`Mapping valid: ${r.length} columns, no conflicts`)};
+ACT.mapsrc=t=>{S.map.src=t.dataset.v;render()};
+VIEWS.A15=()=>ph('A15','Database Mapping Studio','Match columns from each source system to PulseIQ fields and preview the result before importing.')+
+ `<div class="chips">${SOURCES.map(s=>`<button class="chip ${S.map.src===s.k?'on':''}" data-act="mapsrc" data-v="${s.k}">${s.k}</button>`).join('')}</div><div class="card"><div class="muted mono" style="margin-bottom:10px">${SOURCES.find(s=>s.k===S.map.src).tbl}</div><div id="map">${R.map()}</div></div>`;
+
+const SYNCLOG=[['Today 2:00 pm','All sources','Scheduled','48,902 records','3 duplicates merged, 2 review','Completed'],['Today 8:00 am','All sources','Scheduled','48,640 records','1 duplicate merged','Completed'],['Yesterday 2:00 pm','Skills','Scheduled','720 records','File not updated','Warning'],['Yesterday 2:00 pm','Engagement','Scheduled','1,930 records','Column “pts” unmapped','Warning'],['Oct 8 8:00 am','All sources','Manual','48,311 records','None','Completed'],['Oct 7 8:00 am','Placement','Scheduled','1,080 records','Timeout, retried OK','Completed']];
+S.sync={on:false,pct:0,step:'',sched:'Every 6 hours'};
+R.sync=()=>`<div class="row spread"><div><b>${S.sync.on?`Syncing ${S.sync.step}`:'Ready'}</b><div class="muted" style="font-size:13px">Schedule: ${S.sync.sched}</div></div><button class="btn primary" data-act="runsync" ${S.sync.on?'disabled':''}>${S.sync.on?'<span class="spin"></span> Running':ic('refresh',16)+' Run sync now'}</button></div><div class="prog" style="margin-top:12px"><b style="width:${S.sync.pct}%"></b></div>`;
+ACT.runsync=()=>{
+  S.sync.on=true;S.sync.pct=0;let i=0;upd('sync');
+  const iv=setInterval(()=>{
+    if(!S.sync.on){clearInterval(iv);return}
+    S.sync.step=SOURCES[i].k;S.sync.pct=Math.round((i+1)/SOURCES.length*100);
+    if(!$('#sync')){clearInterval(iv);S.sync.on=false;return}
+    upd('sync');i++;
+    if(i>=SOURCES.length){clearInterval(iv);S.sync.on=false;SYNCLOG.unshift(['Just now','All sources','Manual',`${(48902+r0(rnd()*300)).toLocaleString('en-IN')} records`,'None','Completed']);upd('sync');upd('slog');toast('Sync complete. Scores and flags refreshed.')}
+  },520);
+};
+INP.sched=t=>{S.sync.sched=t.value;upd('sync');toast('Schedule saved')};
+R.slog=()=>tbl(['When','Source','Trigger','Imported','Issues','Result'],SYNCLOG.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="mono">${r[3]}</td><td>${r[4]}</td><td><span class="pill ${r[5]==='Completed'?'good':'warn'}">${r[5]}</span></td></tr>`));
+VIEWS.A16=()=>ph('A16','Data Synchronization','Import on demand or on a schedule, then review errors and duplicates.',`<div class="fld" style="min-width:180px"><label for="sch" class="sr">Schedule</label><select class="sel" id="sch" data-in="sched">${['Every hour','Every 6 hours','Daily at 2:00 am','Weekly on Monday'].map(x=>`<option ${S.sync.sched===x?'selected':''}>${x}</option>`).join('')}</select></div>`)+
+ `<div class="card" id="sync">${R.sync()}</div><div class="grid g-main"><div class="card">${cardH('Sync history')}<div id="slog">${R.slog()}</div></div><div class="card">${cardH('Needs attention','Open issues from the latest runs.')}<div class="list">${DQ.filter(d=>d.status==='Needs review').slice(0,5).map(d=>`<div class="li"><span class="pill warn plain">${d.source}</span><div class="grow"><b>${d.type}</b><div class="muted" style="font-size:12.5px">${d.roll}: ${esc(d.detail)}</div></div></div>`).join('')}</div><button class="btn sm" style="margin-top:10px" data-act="go" data-v="A24">Open Data Quality</button></div></div>`;
+
+R.dq=()=>{
+  const types=['Missing value','Duplicate ID','Invalid marks','Incomplete profile'];
+  const complete=100-DQ.filter(d=>d.status==='Needs review').length/ (STUDENTS.length)*100;
+  return`<div class="grid g4" style="margin-bottom:14px">${kpi('Completeness',pc(complete,1),'after cleaning')}${kpi('Auto-fixed',DQ.filter(d=>d.status==='Auto-fixed').length,'rules applied')}${kpi('Needs review',DQ.filter(d=>d.status==='Needs review').length,'by an admin or faculty',DQ.some(d=>d.status==='Needs review')?'dn':'')}${kpi('Records checked',(STUDENTS.length*7).toLocaleString('en-IN'),'7 sources')}</div>`+
+  tbl(['Issue','Student','Field','Source','What happened','Status',''],DQ.map((d,i)=>`<tr><td><span class="tag">${d.id}</span><div class="sub">${d.type}</div></td><td class="mono">${d.roll}</td><td>${d.field}</td><td>${d.source}</td><td style="min-width:240px">${esc(d.detail)}</td><td><span class="pill ${d.status==='Auto-fixed'?'good':'warn'}">${d.status}</span></td><td>${d.status==='Needs review'?`<button class="btn sm" data-act="dqfix" data-v="${i}">Mark fixed</button>`:''}</td></tr>`));
+};
+ACT.dqfix=t=>{DQ[+t.dataset.v].status='Auto-fixed';upd('dq');toast('Marked as resolved')};
+VIEWS.A24=()=>ph('A24','Data Quality Management','Gaps, duplicates and invalid values found while joining the seven sources, and how each was handled.')+
+ `<div class="card">${R.dq()}</div><div class="card">${cardH('Cleaning rules applied on every sync')}<div class="grid g2">${[['Missing values','Filled with the department median (class median for LMS). Never zero-filled. Placement and skills gaps stay “not assessed”.'],['Duplicate IDs','Matched on roll number. The record with the latest timestamp wins; counts such as events are de-duplicated.'],['Invalid marks','Capped at the assessment maximum, negatives set to 0 and queued for the faculty member to confirm.'],['Incomplete profiles','Missing section is inferred from enrollment. Missing guardian or mentor is queued for review.']].map(([t,d])=>`<div class="seg"><i style="background:var(--accent)"></i><div><b>${t}</b><p class="muted" style="font-size:13px">${d}</p></div></div>`).join('')}</div></div>`;
+
+/* ===== A17 reports ===== */
+S.rep='dept';
+function reportData(){
+  const g=(pool,key)=>{const p=pool;return[p.length,f1(mean(p.map(s=>s.cgpa))),pc(mean(p.map(s=>s.att)),1),f1(mean(p.map(s=>s.score))),p.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length]};
+  if(S.rep==='dept')return{cols:['Department','Students','Avg CGPA','Avg attendance','Avg score','High risk'],rows:DEPTS.map(d=>[d.name,...g(STUDENTS.filter(s=>s.dept===d.code))])};
+  if(S.rep==='sem')return{cols:['Semester','Students','Avg CGPA','Avg attendance','Avg score','High risk'],rows:[3,5,7].map(m=>['Semester '+m,...g(STUDENTS.filter(s=>s.sem===m))])};
+  if(S.rep==='att')return{cols:['Class','Students','Avg attendance','Below '+S.R.att+'%','Lowest student','Shortage rate'],rows:[...new Set(STUDENTS.map(s=>s.cls))].map(c=>{const p=STUDENTS.filter(s=>s.cls===c),l=p.filter(s=>s.att<S.R.att);return[c,p.length,pc(mean(p.map(s=>s.att)),1),l.length,Math.min(...p.map(s=>s.att))+'%',pc(l.length/p.length*100)]})};
+  if(S.rep==='exam')return{cols:['Department','Avg internal marks','Students with backlogs','Pass percentage','Avg CGPA','Top CGPA'],rows:DEPTS.map(d=>{const p=STUDENTS.filter(s=>s.dept===d.code);return[d.name,pc(mean(p.map(s=>s.internal)),1),p.filter(s=>s.backlogs>0).length,pc(p.filter(s=>s.backlogs===0).length/p.length*100,1),f1(mean(p.map(s=>s.cgpa))),Math.max(...p.map(s=>s.cgpa))]})};
+  return{cols:['Segment','Students','Avg score','Avg CGPA','Avg attendance','Avg placement score'],rows:SEGS.map(g=>{const p=STUDENTS.filter(s=>s.seg===g.k);return[g.label,p.length,p.length?f1(mean(p.map(s=>s.score))):'–',p.length?f1(mean(p.map(s=>s.cgpa))):'–',p.length?pc(mean(p.map(s=>s.att)),1):'–',p.length?f1(mean(p.map(s=>s.p.placement))):'–']})};
+}
+R.rep=()=>{const d=reportData();return tbl(d.cols,d.rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'mono':''}">${esc(c)}</td>`).join('')}</tr>`))};
+ACT.rep=t=>{S.rep=t.dataset.v;render()};
+ACT.repcopy=()=>{const d=reportData();copyText(csv(d.cols,d.rows),'Report copied as CSV')};
+const REPS=[['dept','Department-wise'],['sem','Semester-wise'],['att','Attendance'],['exam','Examination'],['seg','Performance by segment']];
+VIEWS.A17=()=>ph('A17','Reports & Analytics','Department, semester, attendance, examination and performance reports.',`<button class="btn" data-act="repcopy">Copy as CSV</button>`)+`<div class="chips">${REPS.map(([k,l])=>`<button class="chip ${S.rep===k?'on':''}" data-act="rep" data-v="${k}">${l}</button>`).join('')}</div><div class="card" id="rep">${R.rep()}</div>`;
+
+/* ===== A20 rules ===== */
+R.rules=()=>{const a=STUDENTS.filter(s=>s.risk.acad==='High').length,p=STUDENTS.filter(s=>s.risk.plc==='High').length;return`<div class="grid g3">${kpi('High academic risk',a,pc(a/STUDENTS.length*100)+' of students')}${kpi('High placement risk',p,pc(p/STUDENTS.length*100)+' of students')}${kpi('Below attendance rule',STUDENTS.filter(s=>s.att<S.R.att).length,'under '+S.R.att+'%')}</div>`};
+INP.rule=t=>{const k=t.dataset.k;S.R[k]=+t.value;const l=$('#rl-'+k);if(l)l.textContent=t.value+(k==='att'?'%':'');recompute(S.W,S.R);upd('rules')};
+VIEWS.A20=()=>ph('A20','Rules & Academic Policies','Thresholds that drive shortage warnings and risk flags. Changes apply to every portal immediately.')+
+ `<div id="rules">${R.rules()}</div><div class="grid g2"><div class="card stack">${cardH('Attendance and risk thresholds')}${[['att','Minimum attendance',60,85,1],['acHi','High academic risk starts at',35,70,1],['acMed','Medium academic risk starts at',20,50,1],['plHi','High placement risk starts at',35,70,1],['plMed','Medium placement risk starts at',20,55,1]].map(([k,l,mn,mx])=>`<div class="fld" style="gap:2px"><div class="row spread"><label for="r-${k}" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)">${l}</label><b class="mono" id="rl-${k}">${S.R[k]}${k==='att'?'%':''}</b></div><input type="range" id="r-${k}" min="${mn}" max="${mx}" value="${S.R[k]}" data-in="rule" data-k="${k}"></div>`).join('')}</div>
+ <div class="stack"><div class="card">${cardH('Grading scale')}${tbl(['Grade','Marks','Points'],[['O','90–100','10'],['A+','80–89','9'],['A','70–79','8'],['B+','60–69','7'],['B','50–59','6'],['C','40–49','5'],['F','Below 40','0']].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="mono">${r[2]}</td></tr>`))}</div>
+ <div class="card stack">${cardH('Publication permissions')}${[['Faculty can publish internal marks after approval',1],['Students see marks only after publication',1],['Faculty can correct attendance within 48 hours',1],['Show AI insights to students',1]].map(([t,on])=>`<label class="chk"><input type="checkbox" ${on?'checked':''} data-in="pref"><span>${t}</span></label>`).join('')}</div></div></div>`;
+
+/* ===== A23 college profile ===== */
+VIEWS.A23=()=>ph('A23','College Profile & Settings','Identity, contact details and verified email domains.')+
+ `<form class="card stack" data-form="saveprof" novalidate><div class="row" style="gap:16px"><div class="logo">${COLLEGE.mark}</div><div><b>${COLLEGE.name}</b><div class="muted">${COLLEGE.affil}</div></div></div><div class="grid g2"><div class="fld"><label for="p1">College name</label><input class="inp" id="p1" value="${esc(COLLEGE.name)}"></div><div class="fld"><label for="p2">Short name</label><input class="inp" id="p2" value="${COLLEGE.mark}"></div><div class="fld"><label for="p3">Contact email</label><input class="inp" id="p3" value="registrar@${COLLEGE.domain}"></div><div class="fld"><label for="p4">Contact phone</label><input class="inp" id="p4" value="0866 2 555 010"></div></div><div><div class="lbl" style="margin-bottom:6px">Verified email domains</div><div class="row"><span class="pill good">${COLLEGE.domain}</span><span class="pill good">alumni.${COLLEGE.domain}</span><button type="button" class="btn sm" data-act="adddom">Add domain</button></div></div><button class="btn primary" style="align-self:flex-start">Save changes</button></form>`;
+FORM.saveprof=()=>toast('College profile saved');
+ACT.adddom=()=>toast('Domain verification email sent to the registrar');
+/* ===== generic management screens (search, filter, add, cycle status) ===== */
+const GEN={};
+const PCLS=v=>/^(Active|Published|Approved|Completed|Present|Resolved|Verified|Enrolled|Done|OK|Locked|Responded|Held)$/.test(v)?'good':/^(Inactive|Rejected|Failed|Shortage|Detained)$/.test(v)?'bad':/^(Pending|Draft|Under review|In progress|Planned|Open|Scheduled|On hold|Editable)$/.test(v)?'warn':'acc';
+const gdata=id=>{const g=GEN[id];if(!g.data)g.data=g.rows();return g.data};
+function gfilt(id){const g=GEN[id],f=S.f;return gdata(id).filter(r=>(f.dept==='All'||!g.filter||String(r[g.filter])===f.dept)&&(!f.q||Object.values(r).join(' ').toLowerCase().includes(f.q.toLowerCase())))}
+R.gstats=()=>{const g=GEN[S.route];return g.stats?`<div class="grid g4">${g.stats(gdata(S.route)).map(([k,v,s])=>kpi(k,v,s||'')).join('')}</div>`:''};
+R.gtbl=()=>{
+  const id=S.route,g=GEN[id],rows=gfilt(id),all=gdata(id),page=rows.slice(S.f.page*PAGE,(S.f.page+1)*PAGE);
+  return tbl(g.cols.map(c=>c.h),page.map(r=>{const gi=all.indexOf(r);return`<tr class="${g.open?'clk':''}" ${g.open?`data-act="open" data-v="${r[g.open]}"`:''}>${g.cols.map(c=>{const v=r[c.k];
+    if(c.tog)return`<td><button class="pill ${PCLS(v)}" style="border:0;cursor:pointer" data-act="gtog" data-v="${gi}" title="Click to change">${esc(v)}</button></td>`;
+    if(c.pill)return`<td><span class="pill ${PCLS(v)}">${esc(v)}</span></td>`;
+    if(c.btn)return`<td>${c.btn(r,gi)}</td>`;
+    return`<td class="${c.m?'mono':''}" ${c.w?`style="min-width:${c.w}px"`:''}>${esc(v)}</td>`}).join('')}</tr>`}),{empty:'No records match.'})+pager(rows.length,'gtbl');
+};
+ACT.gtog=t=>{const g=GEN[S.route],r=gdata(S.route)[+t.dataset.v],k=g.cols.find(c=>c.tog).k,cy=g.cycle,i=cy.indexOf(r[k]);r[k]=cy[(i+1)%cy.length];upd('gtbl');upd('gstats')};
+INP.gq=t=>{S.f.q=t.value;S.f.page=0;upd('gtbl')};
+INP.gf=t=>{S.f.dept=t.value;S.f.page=0;upd('gtbl')};
+function genView(id){
+  const g=GEN[id],opts=g.filter?[...new Set(gdata(id).map(r=>String(r[g.filter])))].sort():[];
+  return ph(id,g.title,g.sub,(g.extra||'')+(g.add?`<button class="btn primary" data-act="gadd">${ic('plus',16)} ${g.add.label}</button>`:''))+
+   `<div id="gstats">${R.gstats()}</div><div class="card flat"><div class="toolbar"><div class="fld grow"><label for="gq">Search</label><input class="inp" id="gq" data-in="gq" placeholder="Search this list" value="${esc(S.f.q)}"></div>${g.filter?`<div class="fld"><label for="gf">${g.filterLabel||'Filter'}</label><select class="sel" id="gf" data-in="gf"><option value="All">All</option>${opts.map(o=>`<option ${S.f.dept===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`:''}<button class="btn" data-act="gcopy">Copy CSV</button></div></div><div id="gtbl">${R.gtbl()}</div>`;
+}
+ACT.gcopy=()=>{const g=GEN[S.route],rows=gfilt(S.route);copyText(csv(g.cols.filter(c=>!c.btn).map(c=>c.h),rows.map(r=>g.cols.filter(c=>!c.btn).map(c=>r[c.k]))),`Copied ${rows.length} rows`)};
+ACT.gadd=()=>{const g=GEN[S.route];modal(`<form class="stack" data-form="gadd" novalidate><div class="row spread"><h2 style="font-size:20px">${g.add.label}</h2><button type="button" class="iconbtn" data-act="mclose" aria-label="Close">${ic('x')}</button></div>${g.add.fields.map(f=>`<div class="fld"><label for="ga-${f.k}">${f.l}</label>${f.o?`<select class="sel" id="ga-${f.k}">${f.o.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:f.t==='area'?`<textarea class="txt" id="ga-${f.k}"></textarea>`:`<input class="inp" id="ga-${f.k}" type="${f.t||'text'}">`}</div>`).join('')}<div class="err" id="gerr"></div><div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="mclose">Cancel</button><button class="btn primary">Save</button></div></form>`)};
+FORM.gadd=()=>{const g=GEN[S.route],row={...(g.add.def||{})};for(const f of g.add.fields){const v=$('#ga-'+f.k).value.trim();if(!v&&!f.opt){$('#gerr').textContent=`${f.l} is required.`;return}row[f.k]=v}if(g.add.after)g.add.after(row);gdata(S.route).unshift(row);closeModal();upd('gtbl');upd('gstats');toast('Saved')};
+
+const stat=(d,k,v)=>d.filter(x=>x[k]===v).length;
+GEN.A02={title:'Student Management',sub:'Register students, edit profiles, and activate or deactivate accounts. Select a row to open the student.',filter:'dept',filterLabel:'Department',open:'roll',cycle:['Active','Inactive'],
+ cols:[{k:'roll',h:'Roll no.',m:1},{k:'name',h:'Name'},{k:'dept',h:'Dept'},{k:'sem',h:'Sem'},{k:'sec',h:'Sec'},{k:'email',h:'Email',m:1},{k:'status',h:'Status',tog:1}],
+ rows:()=>STUDENTS.map(s=>({roll:s.id,name:s.name,dept:s.dept,sem:s.sem,sec:s.sec,email:s.email,status:s.active?'Active':'Inactive'})),
+ stats:d=>[['Students',d.length],['Active',stat(d,'status','Active')],['Inactive',stat(d,'status','Inactive')],['Departments',DEPTS.length]],
+ add:{label:'Register student',fields:[{k:'name',l:'Full name'},{k:'roll',l:'Roll number'},{k:'dept',l:'Department',o:DEPTS.map(d=>d.code)},{k:'sem',l:'Semester',o:['3','5','7']},{k:'sec',l:'Section',o:['A','B']}],def:{status:'Active'},after:r=>{r.email=r.roll.toLowerCase()+'@'+COLLEGE.domain}}};
+GEN.A03={title:'Faculty Management',sub:'Faculty profiles, departments, designations and account status.',filter:'dept',filterLabel:'Department',cycle:['Active','Inactive'],
+ cols:[{k:'id',h:'Faculty ID',m:1},{k:'name',h:'Name'},{k:'dept',h:'Dept'},{k:'desig',h:'Designation'},{k:'email',h:'Email',m:1},{k:'exp',h:'Experience (yrs)'},{k:'status',h:'Status',tog:1}],
+ rows:()=>FACULTY.map(f=>({...f})),stats:d=>[['Faculty',d.length],['Active',stat(d,'status','Active')],['Professors',stat(d,'desig','Professor')],['Avg experience',f1(mean(d.map(x=>+x.exp)))+' yrs']],
+ add:{label:'Register faculty',fields:[{k:'name',l:'Full name'},{k:'dept',l:'Department',o:DEPTS.map(d=>d.code)},{k:'desig',l:'Designation',o:['Professor','Associate Professor','Assistant Professor']},{k:'exp',l:'Experience (years)',t:'number'}],def:{status:'Active'},after:r=>{r.id='FAC-'+r.dept+'-0'+(5+Math.floor(rnd()*4));r.email=r.name.replace(/^(Dr\.|Prof\.) /,'').toLowerCase().replace(/ /g,'.')+'@'+COLLEGE.domain}}};
+GEN.A04={title:'Department Management',sub:'Departments, programmes and academic structure.',
+ cols:[{k:'code',h:'Code',m:1},{k:'name',h:'Department'},{k:'hod',h:'Head of department'},{k:'prog',h:'Programme'},{k:'stu',h:'Students'},{k:'fac',h:'Faculty'}],
+ rows:()=>DEPTS.map(d=>({code:d.code,name:d.name,hod:d.hod,prog:'B.Tech '+d.code,stu:STUDENTS.filter(s=>s.dept===d.code).length,fac:FACULTY.filter(f=>f.dept===d.code).length})),
+ stats:d=>[['Departments',d.length],['Programmes',d.length],['Students',d.reduce((a,x)=>a+x.stu,0)],['Faculty',d.reduce((a,x)=>a+x.fac,0)]],
+ add:{label:'Add department',fields:[{k:'code',l:'Code'},{k:'name',l:'Department name'},{k:'hod',l:'Head of department'}],def:{prog:'B.Tech',stu:0,fac:0}}};
+GEN.A05={title:'Course & Subject Management',sub:'Subjects, codes, credits and curriculum by semester.',filter:'dept',filterLabel:'Department',
+ cols:[{k:'code',h:'Code',m:1},{k:'name',h:'Subject',w:200},{k:'dept',h:'Dept'},{k:'sem',h:'Sem'},{k:'cr',h:'Credits'},{k:'type',h:'Type'}],
+ rows:()=>{const o=[];DEPTS.forEach(d=>[3,5,7].forEach(m=>POOL[d.code][m].split(', ').forEach((n,i)=>o.push({code:`${d.code}${m}0${i+1}`,name:n,dept:d.code,sem:m,cr:i%3===2?4:3,type:/Lab|Programming|Design/.test(n)?'Theory + Lab':'Theory'}))));return o},
+ stats:d=>[['Subjects',d.length],['Credits per semester','21'],['Lab-linked',d.filter(x=>x.type!=='Theory').length],['Semesters','3 active']],
+ add:{label:'Add subject',fields:[{k:'code',l:'Subject code'},{k:'name',l:'Subject name'},{k:'dept',l:'Department',o:DEPTS.map(d=>d.code)},{k:'sem',l:'Semester',o:['3','5','7']},{k:'cr',l:'Credits',o:['2','3','4']}],def:{type:'Theory'}}};
+GEN.A06={title:'Class & Section Management',sub:'Batches, years, semesters, classes and sections.',filter:'dept',filterLabel:'Department',
+ cols:[{k:'cls',h:'Class',m:1},{k:'dept',h:'Dept'},{k:'batch',h:'Batch'},{k:'year',h:'Year'},{k:'sem',h:'Sem'},{k:'sec',h:'Section'},{k:'n',h:'Strength'},{k:'ct',h:'Class teacher'}],
+ rows:()=>[...new Set(STUDENTS.map(s=>s.cls))].map(c=>{const p=STUDENTS.filter(s=>s.cls===c),s=p[0];return{cls:c,dept:s.dept,batch:s.batch,year:'Y'+(s.sem+1)/2,sem:s.sem,sec:s.sec,n:p.length,ct:s.mentor}}),
+ stats:d=>[['Classes',d.length],['Batches',3],['Sections',2],['Avg strength',r0(mean(d.map(x=>+x.n)))]],
+ add:{label:'Create class',fields:[{k:'cls',l:'Class name'},{k:'dept',l:'Department',o:DEPTS.map(d=>d.code)},{k:'batch',l:'Batch',o:['2023','2024','2025','2026']},{k:'sec',l:'Section',o:['A','B','C']}],def:{year:'-',sem:'-',n:0,ct:'Unassigned'}}};
+GEN.A07={title:'Faculty Assignment',sub:'Who teaches which subject to which class, and who mentors.',filter:'dept',filterLabel:'Department',
+ cols:[{k:'fac',h:'Faculty'},{k:'dept',h:'Dept'},{k:'sub',h:'Subject',w:180},{k:'cls',h:'Class',m:1},{k:'role',h:'Role'}],
+ rows:()=>{const o=[];DEPTS.forEach(d=>{const f=FACULTY.filter(x=>x.dept===d.code);POOL[d.code][5].split(', ').forEach((n,i)=>['A','B'].forEach((sc,j)=>o.push({fac:f[(i+j)%4].name,dept:d.code,sub:n,cls:`${d.code}-Y3-${sc}`,role:'Subject faculty'})));f.forEach((x,i)=>o.push({fac:x.name,dept:d.code,sub:'Mentoring',cls:`${d.code}-Y${2+i%3}-${i%2?'A':'B'}`,role:'Mentor'}))});return o},
+ stats:d=>[['Assignments',d.length],['Mentoring roles',stat(d,'role','Mentor')],['Faculty assigned',new Set(d.map(x=>x.fac)).size],['Unassigned subjects',0]],
+ add:{label:'Assign faculty',fields:[{k:'fac',l:'Faculty',o:FACULTY.map(f=>f.name)},{k:'sub',l:'Subject or duty'},{k:'cls',l:'Class',o:[...new Set(STUDENTS.map(s=>s.cls))]},{k:'role',l:'Role',o:['Subject faculty','Mentor','Class teacher']}],after:r=>{r.dept=(FACULTY.find(f=>f.name===r.fac)||{}).dept}}};
+GEN.A08={title:'Student Enrollment',sub:'Class, semester and subject enrollment for each student.',filter:'dept',filterLabel:'Department',open:'roll',cycle:['Enrolled','On hold'],
+ cols:[{k:'roll',h:'Roll no.',m:1},{k:'name',h:'Name'},{k:'dept',h:'Dept'},{k:'cls',h:'Class',m:1},{k:'sem',h:'Sem'},{k:'n',h:'Subjects'},{k:'status',h:'Status',tog:1}],
+ rows:()=>STUDENTS.map(s=>({roll:s.id,name:s.name,dept:s.dept,cls:s.cls,sem:s.sem,n:6,status:'Enrolled'})),
+ stats:d=>[['Enrolled',stat(d,'status','Enrolled')],['On hold',stat(d,'status','On hold')],['Subjects per student',6],['Pending enrollments',0]],
+ add:{label:'Enroll student',fields:[{k:'roll',l:'Roll number'},{k:'name',l:'Name'},{k:'dept',l:'Department',o:DEPTS.map(d=>d.code)},{k:'cls',l:'Class',o:[...new Set(STUDENTS.map(s=>s.cls))]}],def:{sem:'-',n:6,status:'Enrolled'}}};
+GEN.A09={title:'Attendance Management',sub:'College-wide attendance by class, with shortages. Corrections need an admin note.',filter:'dept',filterLabel:'Department',
+ cols:[{k:'cls',h:'Class',m:1},{k:'dept',h:'Dept'},{k:'avg',h:'Avg attendance',m:1},{k:'low',h:'Below rule'},{k:'worst',h:'Weakest subject'},{k:'st',h:'Status',pill:1},{k:'x',h:'',btn:(r)=>`<button class="btn sm" data-act="corr" data-v="${r.cls}">Request correction</button>`}],
+ rows:()=>[...new Set(STUDENTS.map(s=>s.cls))].map(c=>{const p=STUDENTS.filter(s=>s.cls===c),a=mean(p.map(s=>s.att)),sj=p[0].subj.map((x,i)=>({n:x.name,v:mean(p.map(s=>s.subj[i].att))})).sort((x,y)=>x.v-y.v)[0];return{cls:c,dept:p[0].dept,avg:pc(a,1),low:p.filter(s=>s.att<S.R.att).length,worst:`${sj.n} (${r0(sj.v)}%)`,st:a<S.R.att?'Shortage':'OK'}}),
+ stats:d=>[['College average',pc(MEAN.att,1)],['Classes in shortage',stat(d,'st','Shortage')],['Students below rule',STUDENTS.filter(s=>s.att<S.R.att).length],['Pending corrections',3]]};
+ACT.corr=t=>toast('Correction request logged for '+t.dataset.v+'. The faculty member will be asked to confirm.');
+const ASSESS=[];
+['CSE','IT','ECE','EEE','MECH'].forEach((d,di)=>{const pl=POOL[d][5].split(', ');['A','B'].forEach(sc=>[0,5].forEach((si,k)=>['Mid-1','Mid-2'].forEach((a,ai)=>{if(d==='CSE'||(sc==='A'&&k===0))ASSESS.push({id:`${d}-Y3-${sc}-${si}-${ai}`,cls:`${d}-Y3-${sc}`,sub:pl[si],name:a,max:30,status:ai===0?(di%3===0&&sc==='B'?'Under review':'Published'):(d==='CSE'&&k===0?'Draft':'Scheduled'),avg:ai===0?r0(16+rnd()*7):'-'})})));});
+GEN.A10={title:'Marks & Examination Management',sub:'Assessments awaiting approval or publication. Click a status to move it forward.',filter:'cls',filterLabel:'Class',cycle:['Draft','Under review','Approved','Published'],
+ cols:[{k:'cls',h:'Class',m:1},{k:'sub',h:'Subject',w:180},{k:'name',h:'Assessment'},{k:'max',h:'Max marks'},{k:'avg',h:'Avg marks'},{k:'status',h:'Status',tog:1}],
+ rows:()=>ASSESS,stats:d=>[['Assessments',d.length],['Awaiting approval',stat(d,'status','Under review')],['Published',stat(d,'status','Published')],['Drafts',stat(d,'status','Draft')]]};
+const ANN=[{title:'Mid-semester examinations begin 20 October',aud:'All students',date:'Oct 8',status:'Published',by:'Registrar'},{title:'Campus placement drive: registrations open',aud:'Final year',date:'Oct 5',status:'Published',by:'Training & Placement'},{title:'Attendance below 75% will be reported to guardians',aud:'All students',date:'Oct 3',status:'Published',by:'Registrar'},{title:'Faculty meeting, Friday 3:30 pm',aud:'Faculty',date:'Oct 8',status:'Published',by:'Principal'},{title:'Coding bootcamp seats for Y3 students',aud:'CSE, IT Y3',date:'Oct 12',status:'Scheduled',by:'CSE Department'},{title:'Diwali break notice',aud:'All',date:'Oct 25',status:'Draft',by:'Registrar'}];
+GEN.A18={title:'Announcements Management',sub:'Create, schedule and publish notices for the college, faculty, classes or students.',cycle:['Draft','Scheduled','Published'],filter:'aud',filterLabel:'Audience',
+ cols:[{k:'title',h:'Notice',w:260},{k:'aud',h:'Audience'},{k:'date',h:'Date'},{k:'by',h:'From'},{k:'status',h:'Status',tog:1}],rows:()=>ANN.map(x=>({...x})),stats:d=>[['Notices',d.length],['Published',stat(d,'status','Published')],['Scheduled',stat(d,'status','Scheduled')],['Drafts',stat(d,'status','Draft')]],
+ add:{label:'New announcement',fields:[{k:'title',l:'Title'},{k:'aud',l:'Audience',o:['All students','All','Faculty','Final year','CSE Y3','Class']},{k:'msg',l:'Message',t:'area',opt:1}],def:{date:'Oct 10',by:'Admin',status:'Draft'}}};
+GEN.A19={title:'Users & Role Management',sub:'Login accounts, roles and access.',filter:'role',filterLabel:'Role',cycle:['Active','Inactive'],
+ cols:[{k:'email',h:'Email',m:1,w:220},{k:'name',h:'Name'},{k:'role',h:'Role'},{k:'last',h:'Last login'},{k:'status',h:'Status',tog:1},{k:'x',h:'',btn:r=>`<button class="btn sm" data-act="resetpw" data-v="${esc(r.email)}">Reset access</button>`}],
+ rows:()=>[{email:ME_ADMIN.email,name:ME_ADMIN.name,role:'College Admin',last:'Today',status:'Active'},...FACULTY.map((f,i)=>({email:f.email,name:f.name,role:'Faculty',last:i%5?'Yesterday':'Today',status:'Active'})),...STUDENTS.slice(0,60).map((s,i)=>({email:s.email,name:s.name,role:'Student',last:i%3?'2 days ago':'Today',status:s.active?'Active':'Inactive'}))],
+ stats:d=>[['Accounts',d.length],['Admins',stat(d,'role','College Admin')],['Faculty',stat(d,'role','Faculty')],['Inactive',stat(d,'status','Inactive')]],
+ add:{label:'Create account',fields:[{k:'name',l:'Full name'},{k:'email',l:'Institutional email',t:'email'},{k:'role',l:'Role',o:['College Admin','Faculty','Student']}],def:{last:'Never',status:'Active'}}};
+ACT.resetpw=t=>toast('Reset link sent to '+t.dataset.v);
+GEN.A21={title:'Academic Calendar',sub:'Semester dates, examinations, events and holidays.',filter:'type',filterLabel:'Type',
+ cols:[{k:'date',h:'Date',m:1},{k:'ev',h:'Event',w:240},{k:'type',h:'Type',pill:1},{k:'for',h:'Applies to'}],
+ rows:()=>[['Aug 17','Odd semester begins','Term','All'],['Sep 5','Teachers’ Day programme','Event','All'],['Sep 22','Mid-1 examinations','Exam','All years'],['Oct 2','Gandhi Jayanti','Holiday','All'],['Oct 20','Mid-2 examinations begin','Exam','All years'],['Oct 24','Dussehra break','Holiday','All'],['Nov 6','Technical symposium','Event','Y2, Y3'],['Nov 18','Last working day, theory','Term','All'],['Dec 1','End-semester examinations','Exam','All years'],['Dec 20','Semester break','Holiday','All']].map(([date,ev,type,f])=>({date,ev,type,for:f})),
+ stats:d=>[['Events',d.length],['Exams',stat(d,'type','Exam')],['Holidays',stat(d,'type','Holiday')],['Next',' Oct 20']],add:{label:'Add event',fields:[{k:'date',l:'Date'},{k:'ev',l:'Event'},{k:'type',l:'Type',o:['Exam','Event','Holiday','Term']},{k:'for',l:'Applies to',o:['All','All years','Y2, Y3','Faculty']}]}};
+GEN.A22={title:'Audit & Activity Logs',sub:'Logins, record changes, approvals and synchronisation history.',filter:'act',filterLabel:'Action',
+ cols:[{k:'t',h:'Time',m:1},{k:'u',h:'User'},{k:'act',h:'Action',pill:1},{k:'e',h:'Record',w:240},{k:'ip',h:'IP',m:1}],
+ rows:()=>{const A=[['Login','Signed in'],['Approve','Approved Mid-1 marks, ECE-Y3-A'],['Edit','Changed attendance, '+STUDENTS[22].id],['Sync','Imported Placement source'],['Publish','Published Mid-1, IT-Y3-B'],['Edit','Updated student profile '+STUDENTS[5].id],['Login','Signed in'],['Create','Intervention INT-209']];return Array.from({length:40},(_,i)=>{const a=A[i%A.length];return{t:`Oct ${10-Math.floor(i/6)}, ${9+(i*7)%10}:${String((i*13)%60).padStart(2,'0')}`,u:i%4?FACULTY[i%20].name:ME_ADMIN.name,act:a[0],e:a[1],ip:`10.2.${i%9}.${20+i}`}})},
+ stats:d=>[['Events (7 days)',d.length],['Logins',stat(d,'act','Login')],['Record edits',stat(d,'act','Edit')],['Approvals',stat(d,'act','Approve')]]};
+['A02','A03','A04','A05','A06','A07','A08','A09','A10','A18','A19','A21','A22'].forEach(id=>VIEWS[id]=()=>genView(id));
+
+/* ===== faculty ===== */
+(function ensureFacIV(){
+  const sc=STUDENTS.filter(s=>FAC_CLASSES.includes(s.cls)&&(s.risk.acad==='High'||s.risk.plc==='High')).sort((a,b)=>Math.max(b.acad,b.plcR)-Math.max(a.acad,a.plcR));
+  sc.slice(0,5).forEach((s,i)=>{if(!S.interventions.some(x=>x.sid===s.id))S.interventions.push({id:'INT-'+(260+i),sid:s.id,type:['Attendance recovery','Remedial classes','Coding bootcamp','Mentor counselling','Backlog clearing plan'][i],mentor:ME_FAC.name,status:['In progress','Planned','In progress','Planned','Completed'][i],created:`Oct ${2+i}`,due:`Oct ${20+i}`,note:'',scoreAt:s.score,gain:i===4?3.4:null})});
+})();
+const PER=['9:00','9:50','11:00','11:50','1:30','2:20'];
+function ttHtml(slots,exam){return`<div class="tt"><div class="hd"></div>${['Mon','Tue','Wed','Thu','Fri'].map(d=>`<div class="hd">${d}</div>`).join('')}${PER.map((t,p)=>`<div class="hd">P${p+1}<br>${t}</div>`+['Mon','Tue','Wed','Thu','Fri'].map(d=>{const s=slots[d+p];return s?`<div class="${s.c||'cl'}">${esc(s.t)}<small>${esc(s.s||'')}</small></div>`:'<div></div>'}).join('')).join('')}</div>`}
+VIEWS.F01=()=>{
+  const pool=scope(),hi=pool.filter(s=>s.risk.acad==='High'||s.risk.plc==='High'),sb=facSubjects();
+  const mt=ASSESS.filter(a=>myClasses().includes(a.cls)&&a.status==='Draft').length;
+  const top=[...pool].sort((a,b)=>Math.max(b.acad,b.plcR)-Math.max(a.acad,a.plcR)).slice(0,5);
+  return ph('F01',`Welcome, ${S.user.name.replace(/^(Dr\.|Prof\.)\s/,'').split(' ')[0]}`,`${S.user.fac.desig}, ${S.user.dept} · ${TERM}`,`<button class="btn primary" data-act="go" data-v="F05">${ic('check',16)} Mark attendance</button>`)+
+  `<div class="grid g4">${kpi('Classes',myClasses().length,myClasses().join(', '))}${kpi('Subjects',sb.length,sb.map(s=>s.name).join(', '))}${kpi('Students',pool.length,'in your classes')}${kpi('Need support',hi.length,'High risk flag',hi.length?'dn':'')}</div>
+  <div class="grid g-main"><div class="card">${cardH('Students who need you first','Highest risk in your classes.',`<button class="btn sm" data-act="go" data-v="F10">Full analysis</button>`)}${tbl(['Student','Class','Score','Academic','Placement','Main driver'],top.map(s=>`<tr class="clk" data-act="open" data-v="${s.id}"><td><b>${esc(s.name)}</b><div class="sub mono">${s.id}</div></td><td>${s.cls}</td><td class="mono">${f1(s.score)}</td><td>${riskPill(s.risk.acad)}</td><td>${riskPill(s.risk.plc)}</td><td>${esc(topDriver(s))}</td></tr>`))}</div>
+   <div class="card">${cardH('Pending tasks')}<div class="list">${[['file',`${mt||1} marks sheet in draft`,'Submit for approval','F08'],['bell','2 student requests to review','Open requests','F16'],['check','Attendance for Friday, Period 3 not marked','Mark now','F05'],['msg','2 mentoring follow-ups due this week','Open mentoring','F11']].map(([i,t,b,r])=>`<div class="li">${ic(i,17)}<div class="grow"><b style="font-weight:500">${t}</b></div><button class="btn sm" data-act="go" data-v="${r}">${b}</button></div>`).join('')}</div></div></div>
+  <div class="grid g2"><div class="card">${cardH('Class performance')}${myClasses().map(c=>{const p=STUDENTS.filter(s=>s.cls===c);return`<div style="margin-bottom:12px"><div class="row spread" style="font-size:13px"><b>${c}</b><span class="mono muted">avg score ${f1(mean(p.map(s=>s.score)))} · attendance ${pc(mean(p.map(s=>s.att)))}</span></div>${stacked([{label:'High',v:p.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length,color:'--bad'},{label:'Medium',v:p.filter(s=>!(s.risk.acad==='High'||s.risk.plc==='High')&&(s.risk.acad==='Medium'||s.risk.plc==='Medium')).length,color:'--warn'},{label:'Low',v:p.filter(s=>s.risk.acad==='Low'&&s.risk.plc==='Low').length,color:'--good'}])}</div>`}).join('')}<div class="legend"><span><i style="background:var(--bad)"></i>High</span><span><i style="background:var(--warn)"></i>Medium</span><span><i style="background:var(--good)"></i>Low</span></div></div>
+  <div class="card">${cardH('Segments in your classes')}${hbars(SEGS.map(g=>({label:g.label,v:pool.filter(s=>s.seg===g.k).length,color:g.color})))}</div></div>`;
+};
+GEN.F02={title:'My Classes',sub:'Classes you teach or mentor.',cols:[{k:'cls',h:'Class',m:1},{k:'dept',h:'Dept'},{k:'sem',h:'Semester'},{k:'sec',h:'Section'},{k:'n',h:'Students'},{k:'sc',h:'Avg score',m:1},{k:'hi',h:'High risk'}],
+ rows:()=>myClasses().map(c=>{const p=STUDENTS.filter(s=>s.cls===c);return{cls:c,dept:p[0].dept,sem:p[0].sem,sec:p[0].sec,n:p.length,sc:f1(mean(p.map(s=>s.score))),hi:p.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length}}),stats:d=>[['Classes',d.length],['Students',d.reduce((a,x)=>a+x.n,0)],['High risk',d.reduce((a,x)=>a+x.hi,0)],['Semester',5]]};
+GEN.F03={title:'My Subjects',sub:'Subjects you teach this term.',cols:[{k:'code',h:'Code',m:1},{k:'name',h:'Subject',w:180},{k:'cr',h:'Credits'},{k:'cls',h:'Classes'},{k:'syl',h:'Syllabus covered'},{k:'st',h:'Status',pill:1}],
+ rows:()=>facSubjects().map((s,i)=>({code:s.code,name:s.name,cr:i?4:3,cls:s.cls.join(', '),syl:[62,48][i]+'%',st:'On track'})),stats:d=>[['Subjects',d.length],['Credits',7],['Weekly periods',9],['Syllabus avg',55+'%']]};
+GEN.F06={title:'Attendance History',sub:'Past sessions. Records stay editable for 48 hours.',filter:'cls',filterLabel:'Class',cycle:['Editable','Locked'],
+ cols:[{k:'date',h:'Date',m:1},{k:'cls',h:'Class',m:1},{k:'sub',h:'Subject',w:160},{k:'p',h:'Period'},{k:'pr',h:'Present',m:1},{k:'pct',h:'%',m:1},{k:'st',h:'Edit window',tog:1}],
+ rows:()=>{const o=[];const sb=facSubjects();for(let i=0;i<22;i++){const c=myClasses()[i%2],s=sb[(i%3===2&&sb[1].cls.includes(c))?1:0],n=STUDENTS.filter(x=>x.cls===c).length,pr=n-Math.floor(rnd()*4);o.push({date:`Oct ${9-Math.floor(i/3)}`,cls:c,sub:s.name,p:'P'+(1+i%5),pr:`${pr}/${n}`,pct:r0(pr/n*100)+'%',st:i<4?'Editable':'Locked'})}return o},
+ stats:d=>[['Sessions',d.length],['Avg turnout',pc(mean(d.map(x=>parseInt(x.pct))))],['Editable now',stat(d,'st','Editable')],['Lowest',Math.min(...d.map(x=>parseInt(x.pct)))+'%']]};
+GEN.F14={...GEN.A18,title:'Faculty Announcements',sub:'Notices for your classes or students. Publishing to the whole college needs admin approval.',
+ rows:()=>ANN.filter((_,i)=>i!==3).slice(0,4).map(x=>({...x})),add:{label:'New notice',fields:[{k:'title',l:'Title'},{k:'aud',l:'Audience',o:myClasses().concat(['My mentees'])},{k:'msg',l:'Message',t:'area',opt:1}],def:{date:'Oct 10',by:'You',status:'Draft'}}};
+GEN.F16={title:'Student Requests',sub:'Attendance or marks clarification requests from your students.',cycle:['Pending','Approved','Rejected'],
+ cols:[{k:'sid',h:'Student',m:1},{k:'name',h:'Name'},{k:'type',h:'Request'},{k:'sub',h:'Subject'},{k:'note',h:'Note',w:240},{k:'status',h:'Decision',tog:1}],
+ rows:()=>{const p=STUDENTS.filter(s=>myClasses().includes(s.cls));return[[3,'Attendance clarification','Operating Systems','Was on a college-approved hackathon on 3 Oct.'],[11,'Marks re-check','Machine Learning','Q4 in Mid-1 appears unmarked.'],[7,'Attendance clarification','Computer Networks','Medical certificate attached.'],[16,'Marks re-check','Operating Systems','Total looks lower than the sum of questions.']].map(([i,type,sub,note],k)=>({sid:p[i].id,name:p[i].name,type,sub,note,status:k===2?'Approved':'Pending'}))},
+ stats:d=>[['Requests',d.length],['Pending',stat(d,'status','Pending')],['Approved',stat(d,'status','Approved')],['Rejected',stat(d,'status','Rejected')]]};
+['F02','F03','F06','F14','F16'].forEach(id=>VIEWS[id]=()=>genView(id));
+VIEWS.F04=()=>{S.pool=()=>scope();return ph('F04','Student List','Students in your classes. Select a row to see scores, flags and the reasons.')+riskToolbar(false)+`<div id="tbl">${R.tbl()}</div>`};
+VIEWS.F10=()=>{S.pool=()=>scope();S.f.risk=S.f.risk==='All'?'any':S.f.risk;return ph('F10','AI Student Risk Analysis','Risk indicators, explainable predictions and the students who need support first.')+riskToolbar(false)+`<div id="tbl">${R.tbl()}</div>`};
+
+/* F05 attendance */
+S.att={cls:null,sub:0,date:'2026-10-09',period:'3',m:{}};
+function attInit(){const a=S.att;if(!a.cls){a.cls=myClasses()[0]}if(!a.m[a.cls]){a.m[a.cls]={};STUDENTS.filter(s=>s.cls===a.cls).forEach(s=>a.m[a.cls][s.id]=true)}}
+R.roster=()=>{
+  attInit();const a=S.att,p=STUDENTS.filter(s=>s.cls===a.cls),m=a.m[a.cls],pr=p.filter(s=>m[s.id]).length;
+  return`<div class="row spread" style="margin-bottom:10px"><div><b class="mono" style="font-size:20px">${pr}</b> <span class="muted">present of ${p.length} · ${p.length-pr} absent</span></div><button class="btn sm" data-act="allp">Mark all present</button></div>`+
+  `<div class="grid g3" style="gap:10px">${p.map(s=>`<button class="card flat" style="text-align:left;cursor:pointer;display:flex;gap:10px;align-items:center;padding:10px 12px;${m[s.id]?'':'border-color:var(--bad);background:var(--bad-soft)'}" data-act="tgp" data-v="${s.id}" aria-pressed="${m[s.id]}"><span class="pill ${m[s.id]?'good':'bad'} plain" style="min-width:34px;justify-content:center">${m[s.id]?'P':'A'}</span><span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.name)}</b><span class="muted mono" style="font-size:12px">${s.id}${s.att<S.R.att?' · '+s.att+'% overall':''}</span></span></button>`).join('')}</div>`;
+};
+VIEWS.F05=()=>{attInit();const a=S.att,sb=facSubjects();return ph('F05','Mark Attendance','Tap a student to flip between present and absent. Everyone starts as present.')+
+ `<div class="card flat"><div class="toolbar"><div class="fld"><label for="a-c">Class</label><select class="sel" id="a-c" data-in="atc">${myClasses().map(c=>`<option ${a.cls===c?'selected':''}>${c}</option>`).join('')}</select></div><div class="fld"><label for="a-s">Subject</label><select class="sel" id="a-s" data-in="ats">${sb.filter(s=>s.cls.includes(a.cls)).map((s,i)=>`<option value="${i}" ${+a.sub===i?'selected':''}>${s.name}</option>`).join('')}</select></div><div class="fld"><label for="a-d">Date</label><input class="inp" id="a-d" type="date" value="${a.date}" data-in="atd"></div><div class="fld"><label for="a-p">Period</label><select class="sel" id="a-p" data-in="atp">${[1,2,3,4,5,6].map(x=>`<option ${String(x)===a.period?'selected':''}>${x}</option>`).join('')}</select></div><button class="btn primary" data-act="subatt">Submit attendance</button></div></div><div id="roster">${R.roster()}</div>`};
+INP.atc=t=>{S.att.cls=t.value;S.att.sub=0;render()};INP.ats=t=>{S.att.sub=+t.value};INP.atd=t=>{S.att.date=t.value};INP.atp=t=>{S.att.period=t.value};
+ACT.tgp=t=>{const m=S.att.m[S.att.cls];m[t.dataset.v]=!m[t.dataset.v];upd('roster')};
+ACT.allp=()=>{const m=S.att.m[S.att.cls];Object.keys(m).forEach(k=>m[k]=true);upd('roster')};
+ACT.subatt=()=>{const a=S.att,m=a.m[a.cls],n=Object.keys(m).length,pr=Object.values(m).filter(Boolean).length,sb=facSubjects().filter(s=>s.cls.includes(a.cls))[+a.sub]||facSubjects()[0];
+  gdata('F06').unshift({date:a.date.slice(5).replace('-','/'),cls:a.cls,sub:sb.name,p:'P'+a.period,pr:`${pr}/${n}`,pct:r0(pr/n*100)+'%',st:'Editable'});toast(`Attendance saved: ${a.cls}, ${sb.name}, period ${a.period} (${pr}/${n} present)`)};
+
+/* F07 marks entry */
+S.me={cls:null,sub:0,v:{},sub_:false};
+function meInit(){const e=S.me;if(!e.cls)e.cls=myClasses()[0];const key=e.cls+e.sub;if(!e.v[key]){e.v[key]={};const si=e.sub===0?0:5;STUDENTS.filter(s=>s.cls===e.cls).forEach(s=>e.v[key][s.id]=String(s.subj[si].mid1))}return e.v[key]}
+R.mestat=()=>{const v=Object.values(meInit()).filter(x=>x!==''&&!isNaN(+x)).map(Number);return`<div class="grid g4">${kpi('Entered',v.length+' / '+Object.keys(meInit()).length)}${kpi('Average',v.length?f1(mean(v)):'–','out of 30')}${kpi('Highest',v.length?Math.max(...v):'–')}${kpi('Below pass mark (12)',v.filter(x=>x<12).length,'',v.filter(x=>x<12).length?'dn':'')}</div>`};
+VIEWS.F07=()=>{const e=S.me,d=meInit(),sb=facSubjects();const p=STUDENTS.filter(s=>s.cls===e.cls);
+ return ph('F07','Marks Entry','Enter Mid-1 marks out of 30. Values above the maximum are rejected.',`<button class="btn" data-act="mesave">Save draft</button><button class="btn primary" data-act="mesub">Submit for approval</button>`)+
+ `<div class="card flat"><div class="toolbar"><div class="fld"><label for="m-c">Class</label><select class="sel" id="m-c" data-in="mec">${myClasses().map(c=>`<option ${e.cls===c?'selected':''}>${c}</option>`).join('')}</select></div><div class="fld"><label for="m-s">Subject</label><select class="sel" id="m-s" data-in="mes">${sb.filter(s=>s.cls.includes(e.cls)).map((s,i)=>`<option value="${i}" ${e.sub===i?'selected':''}>${s.name}</option>`).join('')}</select></div><div class="fld"><label>Assessment</label><div class="pill acc plain" style="align-self:flex-start;padding:9px 12px">Mid-1 · max 30</div></div></div></div>
+ <div id="mestat">${R.mestat()}</div><div class="err" id="meerr" role="alert"></div>
+ ${tbl(['Roll no.','Student','Mid-1 (of 30)','Attendance'],p.map(s=>`<tr><td class="mono">${s.id}</td><td><b>${esc(s.name)}</b></td><td><input class="inp mono" style="width:100px" inputmode="decimal" id="mk-${s.id}" value="${esc(d[s.id])}" data-in="mk" data-v="${s.id}" aria-label="Marks for ${esc(s.name)}"></td><td class="mono ${s.att<S.R.att?'dn':''}">${s.att}%</td></tr>`))}`};
+INP.mec=t=>{S.me.cls=t.value;S.me.sub=0;render()};INP.mes=t=>{S.me.sub=+t.value;render()};
+INP.mk=t=>{const d=meInit(),v=t.value.trim();d[t.dataset.v]=v;const bad=v!==''&&(isNaN(+v)||+v<0||+v>30);t.style.borderColor=bad?'var(--bad)':'';t.style.background=bad?'var(--bad-soft)':'';upd('mestat')};
+function meCheck(){const d=meInit();const bad=Object.entries(d).filter(([k,v])=>v!==''&&(isNaN(+v)||+v<0||+v>30));if(bad.length){$('#meerr').textContent=`${bad.length} value${bad.length>1?'s are':' is'} outside 0 to 30. Fix the highlighted cells.`;return false}$('#meerr').textContent='';return true}
+ACT.mesave=()=>{if(meCheck())toast('Draft saved')};
+ACT.mesub=()=>{if(!meCheck())return;const d=meInit(),blank=Object.values(d).filter(v=>v==='').length;if(blank){$('#meerr').textContent=`${blank} student${blank>1?'s have':' has'} no marks. Enter AB for absent.`;return}const a=ASSESS.find(x=>x.cls===S.me.cls&&x.name==='Mid-1'&&x.sub===(facSubjects().filter(s=>s.cls.includes(S.me.cls))[S.me.sub]||{}).name);if(a&&a.status==='Draft')a.status='Under review';toast('Submitted to the admin for approval')};
+
+/* F08 review & publish */
+R.pub=()=>{const rows=ASSESS.filter(a=>myClasses().includes(a.cls));return tbl(['Class','Subject','Assessment','Avg','Status',''],rows.map((a,i)=>`<tr><td class="mono">${a.cls}</td><td>${a.sub}</td><td>${a.name}</td><td class="mono">${a.avg}</td><td><span class="pill ${PCLS(a.status)}">${a.status}</span></td><td>${a.status==='Draft'?`<button class="btn sm" data-act="pubnext" data-v="${a.id}">Submit for approval</button>`:a.status==='Approved'?`<button class="btn sm primary" data-act="pubnext" data-v="${a.id}">Publish</button>`:a.status==='Under review'?'<span class="muted">Waiting for admin</span>':''}</td></tr>`))};
+ACT.pubnext=t=>{const a=ASSESS.find(x=>x.id===t.dataset.v);a.status=a.status==='Draft'?'Under review':'Published';upd('pub');toast(a.status==='Published'?'Published. Students can now see these marks.':'Submitted for approval')};
+VIEWS.F08=()=>ph('F08','Marks Review & Publication','Validate, submit for approval, and publish once the admin approves.')+`<div class="callout">Publishing is allowed only after the admin approves a sheet. Students see marks only after publication.</div><div id="pub">${R.pub()}</div>`;
+
+/* F09 student performance */
+S.f9=null;
+VIEWS.F09=()=>{
+  const pool=scope().sort((a,b)=>Math.max(b.acad,b.plcR)-Math.max(a.acad,a.plcR)),s=byId(S.f9)||pool[0];S.f9=s.id;
+  return ph('F09','Student Academic Performance','Subject-wise marks, attendance and progress for one student.',`<button class="btn primary" data-act="open" data-v="${s.id}">${ic('spark',16)} Explain score</button>`)+
+  `<div class="card flat"><div class="fld" style="max-width:380px"><label for="f9s">Student</label><select class="sel" id="f9s" data-in="f9sel">${pool.map(x=>`<option value="${x.id}" ${x.id===s.id?'selected':''}>${esc(x.name)} · ${x.id}</option>`).join('')}</select></div></div>
+  <div class="grid g4">${kpi('Success score',f1(s.score),SEGMAP[s.seg].label)}${kpi('CGPA',s.cgpa,s.backlogs+' backlog(s)')}${kpi('Attendance',s.att+'%',s.att<S.R.att?'Below rule':'Within rule',s.att<S.R.att?'dn':'')}${kpi('4-week trend',(s.delta>0?'+':'')+s.delta,'score points',s.delta>=0?'up':'dn')}</div>
+  <div class="grid g-main"><div class="card">${cardH('Subject-wise record')}${tbl(['Subject','Mid-1','Mid-2','Assign.','Total /70','Attendance'],s.subj.map(x=>{const t=x.mid1+x.mid2+x.asg;return`<tr><td>${x.name}</td><td class="mono">${x.mid1}</td><td class="mono">${x.mid2}</td><td class="mono">${x.asg}</td><td class="mono"><b>${t}</b></td><td class="mono ${x.att<S.R.att?'dn':''}">${x.att}%</td></tr>`}))}</div>
+  <div class="card">${cardH('Semester GPA trend')}${s.hist.length>1?lineChart([{v:[...s.hist,s.cgpa],color:'--c1'}],[...s.hist.map((_,i)=>'S'+(i+1)),'S'+s.sem],{min:4,max:10}):'<p class="muted">Not enough semesters yet.</p>'}</div></div>`;
+};
+INP.f9sel=t=>{S.f9=t.value;render()};
+
+/* F11 mentoring, F12 tracking */
+S.sess=[{sid:null,topic:'Attendance concern',note:'Discussed travel issues; agreed to share a class-wise plan.',date:'Oct 6',next:'Oct 13'},{sid:null,topic:'Placement preparation',note:'Set a target of 3 coding problems a day.',date:'Oct 3',next:'Oct 17'}];
+R.sess=()=>`<div class="list">${S.sess.map(x=>{const s=byId(x.sid);return`<div class="li"><span class="pill acc plain">${x.date}</span><div class="grow"><b>${esc(s?s.name:'')}</b> <span class="muted">· ${esc(x.topic)}</span><div class="muted" style="font-size:13px">${esc(x.note)}</div><div class="hint">Follow-up ${x.next}</div></div></div>`}).join('')}</div>`;
+VIEWS.F11=()=>{const m=scope().filter(s=>s.risk.acad!=='Low'||s.risk.plc!=='Low').sort((a,b)=>Math.max(b.acad,b.plcR)-Math.max(a.acad,a.plcR));S.sess.forEach((x,i)=>{if(!x.sid)x.sid=(m[i+1]||m[0]).id});
+ return ph('F11','Student Mentoring','Record sessions, academic concerns, support plans and follow-ups.')+`<div class="grid g-main"><form class="card stack" data-form="sess" novalidate>${cardH('Record a session')}<div class="fld"><label for="ms">Student</label><select class="sel" id="ms">${m.map(s=>`<option value="${s.id}">${esc(s.name)} · ${s.id}</option>`).join('')}</select></div><div class="fld"><label for="mt">Topic</label><select class="sel" id="mt">${['Attendance concern','Academic concern','Placement preparation','Personal support','Backlog plan'].map(x=>`<option>${x}</option>`).join('')}</select></div><div class="fld"><label for="mn">Notes</label><textarea class="txt" id="mn" placeholder="What was discussed and agreed"></textarea></div><div class="fld"><label for="mf">Follow-up date</label><input class="inp" id="mf" type="date" value="2026-10-17"></div><div class="err" id="merr"></div><button class="btn primary" style="align-self:flex-start">Save session</button></form><div class="card">${cardH('Recent sessions')}<div id="sess">${R.sess()}</div></div></div>`};
+FORM.sess=()=>{const n=$('#mn').value.trim();if(!n){$('#merr').textContent='Add a short note about the session.';return}S.sess.unshift({sid:$('#ms').value,topic:$('#mt').value,note:n,date:'Oct 10',next:$('#mf').value.slice(5).replace('-','/')});$('#mn').value='';$('#merr').textContent='';upd('sess');toast('Session recorded')};
+R.ivt=()=>{const l=S.interventions.filter(i=>scope().some(s=>s.id===i.sid));return tbl(['Student','Plan','Mentor','Due','Status',''],l.map(i=>{const s=byId(i.sid);return`<tr><td><b class="clk" style="cursor:pointer" data-act="open" data-v="${s.id}">${esc(s.name)}</b><div class="sub mono">${s.id}</div></td><td>${esc(i.type)}</td><td>${esc(i.mentor)}</td><td>${i.due}</td><td><span class="pill ${PCLS(i.status)}">${i.status}</span></td><td>${i.status==='Completed'?`<span class="up mono">+${i.gain}</span>`:`<button class="btn sm" data-act="adv2" data-v="${i.id}">${i.status==='Planned'?'Start':'Mark complete'}</button>`}</td></tr>`}),{empty:'No interventions for your students yet. Open a student and create a plan.'})};
+ACT.adv2=t=>{const i=S.interventions.find(x=>x.id===t.dataset.v);if(i.status==='Planned')i.status='In progress';else{i.status='Completed';i.gain=r1(2+rnd()*5)}upd('ivt');toast('Updated')};
+VIEWS.F12=()=>{const l=S.interventions.filter(i=>scope().some(s=>s.id===i.sid));return ph('F12','Intervention Tracking','Plans for your students, how they are responding, and the score change when completed.')+`<div class="grid g4">${kpi('Plans',l.length)}${kpi('In progress',l.filter(i=>i.status==='In progress').length)}${kpi('Completed',l.filter(i=>i.status==='Completed').length)}${kpi('Avg gain',l.some(i=>i.gain)?'+'+f1(mean(l.filter(i=>i.gain).map(i=>i.gain))):'–','score points')}</div><div id="ivt">${R.ivt()}</div>`};
+
+/* F13 class reports */
+S.f13=null;
+VIEWS.F13=()=>{const c=S.f13||myClasses()[0],p=STUDENTS.filter(s=>s.cls===c);S.f13=c;
+ const rows=p[0].subj.map((x,i)=>[x.name,pc(mean(p.map(s=>(s.subj[i].mid1+s.subj[i].mid2+s.subj[i].asg)/70*100)),1),pc(mean(p.map(s=>s.subj[i].att)),1),p.filter(s=>s.subj[i].att<S.R.att).length,p.filter(s=>s.risk.acad==='High').length]);
+ return ph('F13','Class Reports','Attendance, marks, subject performance and risk summaries.',`<button class="btn" data-act="f13copy">Copy as CSV</button>`)+`<div class="chips">${myClasses().map(x=>`<button class="chip ${c===x?'on':''}" data-act="f13c" data-v="${x}">${x}</button>`).join('')}</div>
+ <div class="grid g4">${kpi('Students',p.length)}${kpi('Avg score',f1(mean(p.map(s=>s.score))))}${kpi('Avg attendance',pc(mean(p.map(s=>s.att))))}${kpi('High risk',p.filter(s=>s.risk.acad==='High'||s.risk.plc==='High').length,'','dn')}</div>
+ <div class="card">${cardH('Subject performance')}${tbl(['Subject','Avg internal marks','Avg attendance','Below attendance rule','High academic risk'],rows.map(r=>`<tr>${r.map((v,i)=>`<td class="${i?'mono':''}">${v}</td>`).join('')}</tr>`))}</div>`};
+ACT.f13c=t=>{S.f13=t.dataset.v;render()};
+ACT.f13copy=()=>{const p=STUDENTS.filter(s=>s.cls===S.f13);copyText(csv(['Roll','Name','Score','Attendance','CGPA','Academic risk','Placement risk'],p.map(s=>[s.id,s.name,s.score,s.att,s.cgpa,s.risk.acad,s.risk.plc])),'Class report copied')};
+
+/* F15 + F17 */
+const FSLOTS={Mon0:{t:'Operating Systems',s:'CSE-Y3-A'},Mon2:{t:'Operating Systems',s:'CSE-Y3-B'},Tue1:{t:'Machine Learning',s:'CSE-Y3-A'},Wed1:{t:'Operating Systems',s:'CSE-Y3-A'},Wed3:{t:'Operating Systems',s:'CSE-Y3-B'},Thu0:{t:'Operating Systems',s:'CSE-Y3-B'},Thu2:{t:'Machine Learning',s:'CSE-Y3-A'},Fri2:{t:'Operating Systems',s:'CSE-Y3-A'},Fri4:{t:'Machine Learning',s:'CSE-Y3-A'},Fri5:{t:'Mentoring hour',s:'Mentees',c:'ex'}};
+VIEWS.F15=()=>ph('F15','Faculty Timetable','Your weekly sessions. Period times follow the college schedule.')+`<div class="card">${ttHtml(FSLOTS)}</div>`;
+VIEWS.F17=()=>{const f=S.user.fac;return ph('F17','My Profile','Personal information and account settings you are permitted to change.')+`<div class="grid g2"><div class="card stack"><div class="row" style="gap:14px"><div class="av" style="width:56px;height:56px;font-size:20px">${ini(f.name)}</div><div><h2 style="font-size:20px">${esc(f.name)}</h2><div class="muted">${f.desig}, ${f.dept}</div></div></div>${[['Faculty ID',f.id],['Email',f.email],['Experience',f.exp+' years'],['Classes',myClasses().join(', ')]].map(([k,v])=>`<div class="row spread"><span class="muted">${k}</span><span class="mono">${esc(v)}</span></div>`).join('')}</div>
+ <form class="card stack" data-form="saveprof" novalidate>${cardH('Editable details')}<div class="fld"><label for="fp-p">Phone</label><input class="inp" id="fp-p" value="98480 12345"></div><div class="fld"><label for="fp-o">Office hours</label><input class="inp" id="fp-o" value="Tue and Thu, 3:30 to 5:00 pm, Room 2-14"></div><button class="btn primary" style="align-self:flex-start">Save</button></form></div>`};
+
+/* ===== student ===== */
+const me=()=>S.user.stu;
+const cohortRank=s=>{const p=STUDENTS.filter(x=>x.cls===s.cls).sort((a,b)=>b.score-a.score);return p.findIndex(x=>x.id===s.id)+1};
+const held=i=>38+i*2;
+VIEWS.S01=()=>{
+  const s=me(),sd=scoreDrivers(s),neg=sd.filter(d=>d.c<0).slice(0,2),pos=sd.filter(d=>d.c>0).slice(0,2),low=s.subj.filter(x=>x.att<S.R.att),acts=actionsFor(s);
+  return ph('S01',`Hi, ${s.name.split(' ')[0]}`,`${s.dept} · Semester ${s.sem} · Section ${s.sec} · ${s.id}`)+
+  `<div class="grid g-main"><div class="card"><div class="row" style="gap:24px;align-items:center">${gauge(s.score,150)}<div class="grow" style="min-width:200px"><div class="lbl">Your Student Success Score</div><p style="font-size:16px;margin:6px 0">${s.score>=MEAN.score?'Above':'Below'} the college average (${f1(MEAN.score)}). Rank <b>${cohortRank(s)}</b> of ${STUDENTS.filter(x=>x.cls===s.cls).length} in your class.</p><div class="row">${segPill(s.seg)}<button class="btn sm" data-act="go" data-v="S07">See why</button></div></div></div></div>
+  <div class="card">${cardH('This week')}<div class="stack" style="gap:8px">${neg[0]?`<div class="callout warn"><b>${neg[0].label}</b> is holding your score back by ${Math.abs(neg[0].c).toFixed(1)} points.</div>`:''}${pos[0]?`<div class="callout"><b>${pos[0].label}</b> is lifting your score by ${pos[0].c.toFixed(1)} points.</div>`:''}${low.length?`<div class="callout bad">${low.length} subject${low.length>1?'s are':' is'} below ${S.R.att}% attendance.</div>`:''}</div></div></div>
+  <div class="grid g4">${kpi('Attendance',s.att+'%',s.att<S.R.att?'Below the '+S.R.att+'% rule':'Within the rule',s.att<S.R.att?'dn':'up')}${kpi('CGPA',s.cgpa,s.backlogs?s.backlogs+' backlog(s)':'No backlogs')}${kpi('Internal marks',s.internal+'%','average this semester')}${kpi('Placement readiness',r0(s.p.placement),'out of 100')}</div>
+  <div class="grid g2"><div class="card">${cardH('Attendance by subject')}${hbars(s.subj.map(x=>({label:x.name,v:x.att,txt:x.att+'%',color:x.att<S.R.att?'--bad':'--c1'})),{max:100})}</div><div class="card">${cardH('Best next steps','Based on what moves your score the most.')}${acts.map(a=>`<div class="li" style="padding:9px 0">${ic('target',16)}<span>${esc(a.text)}</span></div>`).join('')||'<p class="muted">Nothing urgent. Keep going.</p>'}<button class="btn sm" style="margin-top:8px" data-act="go" data-v="S13">Try the what-if planner</button></div></div>`;
+};
+VIEWS.S02=()=>{const s=me();return ph('S02','My Profile','Personal and academic details.')+`<div class="grid g2"><div class="card stack"><div class="row" style="gap:14px"><div class="av" style="width:56px;height:56px;font-size:20px">${ini(s.name)}</div><div><h2 style="font-size:20px">${esc(s.name)}</h2><div class="muted mono">${s.id}</div></div></div>${[['Department',DEPTS.find(d=>d.code===s.dept).name],['Batch',s.batch],['Semester',s.sem],['Section',s.sec],['Class',s.cls],['Mentor',s.mentor]].map(([k,v])=>`<div class="row spread"><span class="muted">${k}</span><span>${esc(v)}</span></div>`).join('')}</div>
+ <form class="card stack" data-form="saveprof" novalidate>${cardH('Contact details','You can update your phone number.')}<div class="fld"><label for="sp1">College email</label><input class="inp" id="sp1" value="${s.email}" disabled></div><div class="fld"><label for="sp2">Phone</label><input class="inp" id="sp2" value="${s.phone}"></div><button class="btn primary" style="align-self:flex-start">Save</button></form></div>`};
+VIEWS.S03=()=>{const s=me(),t=S.R.att/100;
+ return ph('S03','My Attendance','Subject-wise attendance and how many classes you need to get back above the rule.')+`<div class="grid g3">${kpi('Overall',s.att+'%',s.att<S.R.att?'Below the rule':'Within the rule',s.att<S.R.att?'dn':'up')}${kpi('Subjects below rule',s.subj.filter(x=>x.att<S.R.att).length)}${kpi('Rule',S.R.att+'%','set by the college')}</div>
+ <div class="card">${cardH('By subject')}${tbl(['Subject','Held','Attended','Attendance','What you need'],s.subj.map((x,i)=>{const H=held(i),A=r0(x.att/100*H),need=x.att<S.R.att?Math.ceil((t*H-A)/(1-t)):0;return`<tr><td>${x.name}</td><td class="mono">${H}</td><td class="mono">${A}</td><td style="min-width:140px"><div class="row" style="gap:8px;flex-wrap:nowrap"><b class="mono" style="min-width:34px">${x.att}%</b><div class="sbar" style="flex:1"><b style="width:${x.att}%;background:var(${x.att<S.R.att?'--bad':'--c1'})"></b></div></div></td><td>${need?`<span class="pill high">Attend next ${need} in a row</span>`:'<span class="pill low">On track</span>'}</td></tr>`}))}</div>`};
+VIEWS.S04=()=>{const s=me();return ph('S04','My Marks','Published internal marks and assignment scores.')+`<div class="card">${tbl(['Subject','Mid-1 /30','Mid-2 /30','Assignment /10','Total /70','%'],s.subj.map(x=>{const t=x.mid1+x.mid2+x.asg,p=t/70*100;return`<tr><td>${x.name}<div class="sub">${x.fac}</div></td><td class="mono">${x.mid1}</td><td class="mono">${x.mid2}</td><td class="mono">${x.asg}</td><td class="mono"><b>${t}</b></td><td class="mono ${p<50?'dn':''}">${r0(p)}%</td></tr>`}))}<p class="hint" style="margin-top:10px">Only marks published by your faculty are shown.</p></div>`};
+VIEWS.S05=()=>{const s=me(),h=[...s.hist,s.cgpa];return ph('S05','Semester Results','Semester GPA and cumulative CGPA.')+`<div class="grid g-main"><div class="card">${cardH('GPA by semester')}${lineChart([{v:h,color:'--c1'}],h.map((_,i)=>'S'+(i+1)),{min:4,max:10})}</div><div class="card">${cardH('Results')}${tbl(['Semester','GPA','Result'],h.map((g,i)=>`<tr><td>Semester ${i+1}${i===h.length-1?' (so far)':''}</td><td class="mono">${f1(g)}</td><td><span class="pill ${g>=6?'good':'bad'}">${g>=6?'Pass':'Needs attention'}</span></td></tr>`))}<div class="row spread" style="margin-top:12px"><b>CGPA</b><b class="mono" style="font-size:20px">${s.cgpa}</b></div></div></div>`};
+VIEWS.S06=()=>{const s=me(),h=[...s.hist,s.cgpa],ranked=[...s.subj].map(x=>({...x,p:(x.mid1+x.mid2+x.asg)/70*100})).sort((a,b)=>b.p-a.p);
+ return ph('S06','Academic Progress','Trends, strengths and weak areas.')+`<div class="grid g2"><div class="card">${cardH('Profile against college average','Dashed line is the average student.')}${radar(PILLARS.map(p=>({l:p.short,v:s.p[p.k]})),PILLARS.map(p=>MEAN[p.k]))}</div><div class="stack"><div class="card">${cardH('Strengths')}${ranked.slice(0,2).map(x=>`<div class="row spread" style="padding:6px 0"><span>${x.name}</span><b class="mono up">${r0(x.p)}%</b></div>`).join('')}</div><div class="card">${cardH('Weak areas')}${ranked.slice(-2).reverse().map(x=>`<div class="row spread" style="padding:6px 0"><span>${x.name}</span><b class="mono dn">${r0(x.p)}%</b></div>`).join('')}</div><div class="card">${cardH('GPA trend')}${h.length>1?lineChart([{v:h,color:'--c1'}],h.map((_,i)=>'S'+(i+1)),{min:4,max:10,h:150}):''}</div></div></div>`};
+VIEWS.S07=()=>{const s=me(),sd=scoreDrivers(s),ad=riskDrivers(s,'acad'),pd=riskDrivers(s,'plc');
+ const say=(arr,t)=>{const x=arr.filter(d=>d.c>.8).slice(0,2);return x.length?`Your ${t} risk is ${s.risk[t==='academic'?'acad':'plc'].toLowerCase()}. The biggest reasons: ${x.map(d=>`${d.label.toLowerCase()} (${detail(s,d.k)})`).join(' and ')}.`:`Your ${t} risk is low. Nothing is pulling it up.`};
+ return ph('S07','AI Performance Insights','Why your score is what it is, in plain language.',`<button class="btn" data-act="method">How is this calculated?</button>`)+`<div class="grid g-main"><div class="card">${cardH('What moves your score','Points relative to the college average.')}${diverge(sd.map(d=>({label:d.label,c:d.c,tip:detail(s,d.k)})))}<div class="legend" style="margin-top:8px"><span><i style="background:var(--good)"></i>Helps you</span><span><i style="background:var(--bad)"></i>Holds you back</span></div></div>
+ <div class="stack"><div class="card">${gauge(s.score,120)}</div><div class="callout ${s.risk.acad==='Low'?'':'warn'}">${esc(say(ad,'academic'))}</div><div class="callout ${s.risk.plc==='Low'?'':'warn'}">${esc(say(pd,'placement'))}</div></div></div>`};
+S.wi={att:0,code:0,asg:0,cert:0};
+R.wi=()=>{const s=me(),c=JSON.parse(JSON.stringify(s)),w=S.wi;
+ c.att=Math.min(99,s.att+w.att);c.plc.code=Math.min(98,s.plc.code+w.code);c.lms.assign=Math.min(100,s.lms.assign+w.asg);c.eng.certs=Math.min(8,s.eng.certs+w.cert);
+ const p=pillars(c),tw=Object.values(S.W).reduce((a,b)=>a+b,0),ns=PILLARS.reduce((a,x)=>a+S.W[x.k]*p[x.k],0)/tw,d=ns-s.score;
+ return`<div class="row" style="gap:20px">${gauge(ns,120,'projected')}<div><div class="lbl">Projected score</div><div class="mono" style="font-size:24px"><b>${f1(ns)}</b> <span class="${d>=0?'up':'dn'}" style="font-size:16px">${d>=0?'+':''}${f1(d)}</span></div><p class="muted" style="font-size:13px">from ${f1(s.score)} today</p></div></div>`};
+INP.wi=t=>{S.wi[t.dataset.k]=+t.value;$('#wiv-'+t.dataset.k).textContent='+'+t.value;upd('wi')};
+VIEWS.S13=()=>{const s=me(),acts=actionsFor(s);S.wi={att:0,code:0,asg:0,cert:0};
+ return ph('S13','Learning Recommendations','Study priorities and a what-if planner for your Success Score.')+`<div class="grid g2"><div class="card">${cardH('Priorities for you','Ordered by impact on your risk flags.')}${acts.map((a,i)=>`<div class="li"><span class="pill acc plain">${i+1}</span><div class="grow"><b style="font-weight:500">${esc(a.text)}</b><div class="muted" style="font-size:12.5px">${esc(detail(s,a.k))}</div></div></div>`).join('')||'<p class="muted">Nothing urgent.</p>'}${(()=>{const w=[...s.subj].map(x=>({...x,p:(x.mid1+x.mid2+x.asg)/70*100})).sort((a,b)=>a.p-b.p)[0];return`<div class="callout" style="margin-top:12px">Weakest subject: <b>${w.name}</b> at ${r0(w.p)}%. Ask ${esc(w.fac)} for the previous question papers.</div>`})()}</div>
+ <div class="card stack">${cardH('What if I improved…','Move the sliders to see the projected score.')}${[['att','Overall attendance',0,20,'pts'],['code','Coding score',0,40,'pts'],['asg','LMS assignment completion',0,40,'pts'],['cert','Certifications',0,4,'']].map(([k,l,mn,mx])=>`<div class="fld" style="gap:2px"><div class="row spread"><label for="wi-${k}" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)">${l}</label><b class="mono" id="wiv-${k}">+0</b></div><input type="range" id="wi-${k}" min="${mn}" max="${mx}" value="0" data-in="wi" data-k="${k}"></div>`).join('')}<div id="wi">${R.wi()}</div></div></div>`};
+VIEWS.S08=()=>{const s=me();return ph('S08','My Subjects','Enrolled subjects, codes, credits and faculty.')+`<div class="card">${tbl(['Code','Subject','Faculty','Credits','Attendance'],s.subj.map((x,i)=>`<tr><td class="mono">${x.code}</td><td>${x.name}</td><td>${x.fac}</td><td class="mono">${i%3===2?4:3}</td><td class="mono ${x.att<S.R.att?'dn':''}">${x.att}%</td></tr>`))}</div>`};
+VIEWS.S09=()=>{const s=me(),sub=s.subj,sl={};const pat=[['Mon',0,0],['Mon',2,1],['Tue',1,2],['Tue',3,3],['Wed',0,4],['Wed',2,5],['Thu',1,0],['Thu',4,1],['Fri',0,2],['Fri',2,3],['Mon',4,4],['Thu',2,5],['Wed',4,0],['Tue',5,5],['Fri',4,1]];pat.forEach(([d,p,i])=>sl[d+p]={t:sub[i].name,s:sub[i].fac});
+ return ph('S09','My Timetable','Weekly classes, examination schedule and academic calendar.')+`<div class="card">${ttHtml(sl)}</div><div class="card">${cardH('Upcoming dates')}${tbl(['Date','Event','Type'],[['Oct 20','Mid-2 examinations begin','Exam'],['Oct 24','Dussehra break','Holiday'],['Nov 6','Technical symposium','Event'],['Dec 1','End-semester examinations','Exam']].map(r=>`<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[2]==='Exam'?'warn':'acc'}">${r[2]}</span></td></tr>`))}</div>`};
+S.tasks=[['Meet mentor to review attendance plan',false],['Complete 10 aptitude problems this week',false],['Submit OS assignment 3',true],['Register for the coding bootcamp',false]];
+R.tasks=()=>S.tasks.map((t,i)=>`<label class="chk li" style="padding:11px 0"><input type="checkbox" ${t[1]?'checked':''} data-in="task" data-v="${i}"><span style="${t[1]?'text-decoration:line-through;color:var(--muted)':''}">${t[0]}</span></label>`).join('');
+INP.task=t=>{S.tasks[+t.dataset.v][1]=t.checked;upd('tasks')};
+VIEWS.S10=()=>{const s=me(),iv=S.interventions.find(i=>i.sid===s.id);return ph('S10','Mentoring & Support','Your mentor, support plan and appointments.')+`<div class="grid g2"><div class="card stack">${cardH('Your mentor')}<div class="row" style="gap:12px"><div class="av">${ini(s.mentor)}</div><div><b>${esc(s.mentor)}</b><div class="muted">${s.dept} department</div></div></div><div class="callout">Next appointment: <b>Fri 16 Oct, 3:30 pm</b>, Room 2-14</div><button class="btn" style="align-self:flex-start" data-act="bookappt">Request an appointment</button></div><div class="card">${cardH('Support tasks')}<div class="list" id="tasks">${R.tasks()}</div></div></div>${iv?`<div class="card">${cardH('Your support plan')}<div class="row spread"><span><b>${esc(iv.type)}</b> with ${esc(iv.mentor)}</span><span class="pill ${PCLS(iv.status)}">${iv.status}</span></div></div>`:''}`};
+ACT.bookappt=()=>toast('Appointment request sent to '+me().mentor);
+GEN.S11={...GEN.A18,title:'Announcements',sub:'Notices from the college, your department and your faculty.',add:null,cycle:null,filter:null,cols:[{k:'title',h:'Notice',w:260},{k:'aud',h:'For'},{k:'date',h:'Date'},{k:'by',h:'From'}],rows:()=>ANN.filter(a=>a.status==='Published').map(x=>({...x})),stats:null};
+GEN.S12={title:'Academic Requests',sub:'Ask for a marks or attendance clarification and track the reply.',cols:[{k:'id',h:'Request',m:1},{k:'type',h:'Type'},{k:'sub',h:'Subject'},{k:'note',h:'Details',w:220},{k:'date',h:'Raised'},{k:'status',h:'Status',pill:1}],
+ rows:()=>[{id:'REQ-418',type:'Attendance clarification',sub:'Computer Networks',note:'Hackathon on 3 Oct was college-approved.',date:'Oct 6',status:'Pending'},{id:'REQ-402',type:'Marks re-check',sub:'Operating Systems',note:'Q2 total not matching.',date:'Sep 29',status:'Resolved'}],stats:d=>[['Requests',d.length],['Pending',stat(d,'status','Pending')],['Resolved',stat(d,'status','Resolved')],['Avg reply time','2 days']],
+ add:{label:'New request',fields:[{k:'type',l:'Request type',o:['Attendance clarification','Marks re-check']},{k:'sub',l:'Subject',o:[]},{k:'note',l:'Details',t:'area'}],def:{date:'Oct 10',status:'Pending'},after:r=>{r.id='REQ-'+(420+Math.floor(rnd()*60))}}};
+VIEWS.S11=()=>genView('S11');
+VIEWS.S12=()=>{GEN.S12.add.fields[1].o=me().subj.map(x=>x.name);return genView('S12')};
+VIEWS.S14=()=>{const s=me();const rep=[['Progress report: Semester '+s.sem+' (so far)','Oct 10, 2026'],['Attendance statement','Oct 10, 2026'],['Success Score summary','Oct 10, 2026']];
+ return ph('S14','My Academic Reports','Permitted reports about your own progress.')+`<div class="card"><div class="list">${rep.map((r,i)=>`<div class="li"><span class="pill acc plain" style="padding:6px">${ic('file',16)}</span><div class="grow"><b>${r[0]}</b><div class="muted" style="font-size:12.5px">${r[1]}</div></div><button class="btn sm" data-act="prev" data-v="${i}">Preview</button><button class="btn sm" data-act="copyrep" data-v="${i}">Copy summary</button></div>`).join('')}</div></div>`};
+function repText(i){const s=me();return[`PROGRESS REPORT\n${s.name} (${s.id}), ${s.dept} Semester ${s.sem}\nCGPA ${s.cgpa} · Attendance ${s.att}% · Internal marks ${s.internal}% · Backlogs ${s.backlogs}\nSuccess Score ${f1(s.score)} (college average ${f1(MEAN.score)})`,`ATTENDANCE STATEMENT\n${s.name} (${s.id})\n${s.subj.map(x=>`${x.name}: ${x.att}%`).join('\n')}\nOverall: ${s.att}%`,`SUCCESS SCORE SUMMARY\n${s.name}: ${f1(s.score)}\n${scoreDrivers(s).map(d=>`${d.label}: ${d.c>0?'+':''}${d.c.toFixed(1)}`).join('\n')}`][i]}
+ACT.prev=t=>modal(`<div class="row spread"><h2 style="font-size:20px">Report preview</h2><button class="iconbtn" data-act="mclose" aria-label="Close">${ic('x')}</button></div><pre style="white-space:pre-wrap;font-family:var(--f-m);font-size:13px;background:var(--surface2);padding:14px;border-radius:10px;margin-top:12px">${esc(repText(+t.dataset.v))}</pre>`);
+ACT.copyrep=t=>copyText(repText(+t.dataset.v),'Summary copied');
+VIEWS.S15=()=>VIEWS.C08().replace('>C08<','>S15<').replace('Account &amp; Security','Student Account Settings');
+render();
+</script></body></html>

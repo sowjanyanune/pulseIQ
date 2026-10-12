@@ -1,0 +1,11 @@
+{
+  "scoring_version": "rules_v1",
+  "weights": {"A": 0.30, "T": 0.20, "L": 0.15, "P": 0.25, "S": 0.05, "E": 0.05},
+  "minimum_coverage": 0.80,
+  "stale_days": 30,
+  "academic_threshold": 50,
+  "attendance_threshold": 75,
+  "placement_threshold": 60,
+  "coding_threshold": 50,
+  "strong_academic_threshold": 70
+}

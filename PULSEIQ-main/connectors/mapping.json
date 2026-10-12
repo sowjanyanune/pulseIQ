@@ -1,0 +1,74 @@
+{
+  "students": {
+    "table": "students",
+    "columns": {
+      "student_id": "student_id",
+      "department": "department",
+      "semester": "semester"
+    }
+  },
+  "academic": {
+    "table": "academic",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "marks_pct": "marks_pct",
+      "backlog_count": "backlog_count"
+    }
+  },
+  "attendance": {
+    "table": "attendance",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "classes_attended": "classes_attended",
+      "classes_held": "classes_held"
+    }
+  },
+  "lms": {
+    "table": "lms",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "assignments_completed": "assignments_completed",
+      "assignments_assigned": "assignments_assigned"
+    }
+  },
+  "placement": {
+    "table": "placement",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "aptitude_pct": "aptitude_pct",
+      "coding_pct": "coding_pct",
+      "interview_pct": "interview_pct"
+    }
+  },
+  "skills": {
+    "table": "skills",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "technical_pct": "technical_pct",
+      "communication_pct": "communication_pct"
+    }
+  },
+  "engagement": {
+    "table": "engagement",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "activities_completed": "activities_completed",
+      "activities_available": "activities_available"
+    }
+  },
+  "feedback": {
+    "table": "feedback",
+    "columns": {
+      "student_id": "student_id",
+      "period_end": "period_end",
+      "support_requested": "support_requested",
+      "support_category": "support_category"
+    }
+  }
+}

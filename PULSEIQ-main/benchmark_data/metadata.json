@@ -1,0 +1,21 @@
+{
+  "dataset": "Predict Students\u2019 Dropout and Academic Success",
+  "uci_id": 697,
+  "doi": "10.24432/C5MC89",
+  "license": "CC BY 4.0",
+  "retrieved_on": "2026-10-10",
+  "source_url": "https://archive.ics.uci.edu/static/public/697/predict+students+dropout+and+academic+success.zip",
+  "source_sha256": "3ef126de5cefff26eb11fbb4237f1a1401cb64b488e2f1d598c23cedeb4c45ae",
+  "source_rows": 4424,
+  "derivative_rows": 4424,
+  "sample_students": 400,
+  "changes": [
+    "Retained academic variables, course code and outcome only.",
+    "Added row identifiers; these are not original student IDs.",
+    "Removed demographics, financial, nationality and family attributes.",
+    "Sample adapter: grades multiplied by five; zero/no evaluation becomes missing.",
+    "Backlogs remain unknown; unapproved units are not assumed to be backlogs.",
+    "Reporting dates are artificial demo labels, not actual study dates.",
+    "No missing source category is fabricated; no predictor is trained."
+  ]
+}

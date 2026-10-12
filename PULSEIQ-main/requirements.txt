@@ -1,0 +1,17 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+SQLAlchemy==2.0.40
+psycopg[binary]==3.2.9
+pwdlib[argon2]==0.2.1
+httpx==0.28.1
+pymongo==4.13.0
+pandas==2.3.3
+numpy==2.3.3
+cryptography>=44,<47
+PyMySQL==1.1.1
+scikit-learn==1.7.2
+joblib==1.5.2
+# IANA time-zone database for college-local attendance dates on slim Render containers.
+tzdata>=2025.2,<2028
+
+python-dotenv==1.1.1
